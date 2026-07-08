@@ -40,9 +40,10 @@
   .note { background:#EEF3FB; border-left:3px solid var(--powder); border-radius:8px; padding:14px 16px; font-size:13.5px; color:#3A5470; margin:26px 0; }
   .note strong { color:var(--navy); }
 
-  .shots { display:flex; gap:12px; overflow-x:auto; margin:20px 0 6px; padding-bottom:6px; }
-  .shot { flex:0 0 140px; height:280px; background:#E8ECF0; border-radius:14px; border:1px solid var(--line);
-    display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:12px; text-align:center; padding:10px; }
+  .shots { display:flex; gap:14px; overflow-x:auto; margin:20px 0 6px; padding-bottom:6px; -webkit-overflow-scrolling:touch; }
+  .shot { flex:0 0 150px; text-align:center; }
+  .shot img { width:100%; border-radius:14px; border:1px solid var(--line); display:block; background:#fff; }
+  .shot span { display:block; font-size:11.5px; color:var(--muted); margin-top:8px; }
 
   footer { text-align:center; color:var(--muted); font-size:13px; padding:20px 20px 50px; }
   footer a { color:var(--muted); margin:0 8px; }
@@ -59,7 +60,7 @@
   <div class="cta-card">
     <h1>Installer la version bêta</h1>
     <p>Sur ton iPhone, appuie sur le bouton ci-dessous.</p>
-    <a class="cta-btn" href="https://itunes.apple.com/us/app/testflight/id899247664?mt=8">Installer RemplaCare</a>
+    <a class="cta-btn" href="https://testflight.apple.com/join/CSWXcuBF">Installer RemplaCare</a>
     <div class="cta-time">⏱️ 2 minutes, sans rien payer</div>
   </div>
 
@@ -94,9 +95,18 @@
   </div>
 
   <div class="shots">
-    <div class="shot">[capture : écran TestFlight avec le bouton "Installer"]</div>
-    <div class="shot">[capture : icône RemplaCare dans TestFlight]</div>
-    <div class="shot">[capture : app ouverte sur l'écran Calendrier]</div>
+    <div class="shot">
+      <img src="/images/step1-testflight.png" alt="Installer TestFlight sur l'App Store">
+      <span>1. Installer TestFlight</span>
+    </div>
+    <div class="shot">
+      <img src="/images/step2-installee.png" alt="RemplaCare disponible dans TestFlight">
+      <span>2. Installer RemplaCare</span>
+    </div>
+    <div class="shot">
+      <img src="/images/step3-app-ouverte.png" alt="RemplaCare ouverte sur l'écran d'accueil">
+      <span>3. C'est prêt !</span>
+    </div>
   </div>
 
   <div class="note">

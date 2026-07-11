@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RemplaCare — Le calendrier des professionnels de santé libéraux</title>
+<meta name="description" content="Planifie tes remplacements, suis ton chiffre d'affaires en temps réel, et sache enfin où tu en vas. L'app créée par un infirmier libéral remplaçant, pour les remplaçants.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1C324A;
+    --navy-deep:#15263A;
+    --sage:#77A895;
+    --sage-dark:#5D8C79;
+    --powder:#BFD6F6;
+    --positive:#2EBB6F;
+    --bg:#FAFAF7;
+    --ink:#22303D;
+    --muted:#6B7C8C;
+    --line:#E4E8EC;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Jost',system-ui,sans-serif; font-size:17px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+  .narrow{max-width:720px;margin:0 auto}
+
+  /* ── Type ─────────────────────────────── */
+  h1,h2,h3{font-family:'Fraunces',Georgia,serif;color:var(--navy);line-height:1.15;letter-spacing:-.01em}
+  h1{font-size:clamp(34px,5.5vw,54px);font-weight:700}
+  h2{font-size:clamp(26px,3.6vw,38px);font-weight:600;margin-bottom:14px}
+  h3{font-size:19px;font-weight:600;margin-bottom:6px}
+  .eyebrow{
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+    color:var(--sage);margin-bottom:14px;
+  }
+  .lead{font-size:19px;color:var(--muted);line-height:1.6}
+
+  /* ── Nav ──────────────────────────────── */
+  nav{
+    position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
+    backdrop-filter:blur(8px);padding:16px 0;
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:#fff;text-decoration:none;white-space:nowrap}
+  .brand em{color:var(--sage);font-style:normal}
+  .nav-cta{
+    background:var(--sage);color:#fff;text-decoration:none;font-weight:600;font-size:14px;
+    padding:10px 20px;border-radius:22px;white-space:nowrap;transition:background .2s;
+  }
+  .nav-cta:hover{background:var(--sage-dark)}
+
+  /* ── Hero ─────────────────────────────── */
+  .hero{background:var(--navy);color:#fff;padding:72px 0 88px;overflow:hidden}
+  .hero h1{color:#fff;margin-bottom:20px}
+  .hero h1 em{color:var(--sage);font-style:normal}
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:48px;align-items:center}
+  .hero p.lead{color:var(--powder);margin-bottom:32px;font-size:20px}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+  .btn{
+    display:inline-block;text-decoration:none;font-weight:600;font-size:17px;
+    padding:16px 34px;border-radius:30px;transition:transform .15s, background .2s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--sage);color:#fff}
+  .btn-primary:hover{background:var(--sage-dark)}
+  .btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.3);padding:15px 28px}
+  .btn-ghost:hover{border-color:rgba(255,255,255,.7)}
+  .hero-meta{font-size:13.5px;color:rgba(255,255,255,.5);margin-top:16px}
+
+  /* ── Signature : le calendrier vivant ── */
+  .cal-card{
+    background:#fff;border-radius:22px;padding:22px 20px 24px;
+    box-shadow:0 24px 60px rgba(0,0,0,.28);
+  }
+  .cal-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:18px}
+  .cal-month{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--navy)}
+  .cal-ca{text-align:right}
+  .cal-ca-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block}
+  .cal-ca-val{font-family:'Fraunces',serif;font-weight:700;font-size:26px;color:var(--positive);font-variant-numeric:tabular-nums}
+  .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+  .cal-dow span{text-align:center;font-size:11px;font-weight:600;color:var(--muted)}
+  .cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .day{
+    aspect-ratio:1;border-radius:10px;background:#F1F3F5;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:500;color:#A9B4BE;
+    transition:background .45s ease, color .45s ease, transform .45s ease;
+  }
+  .day.on{background:var(--sage);color:#fff;transform:scale(1.04)}
+  .day.rest{background:#fff;border:1px solid var(--line);color:#C3CBD3}
+  .cal-legend{display:flex;gap:16px;margin-top:16px;font-size:12px;color:var(--muted)}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .dot.work{background:var(--sage)}
+  .dot.off{background:#E9EDF0;border:1px solid var(--line)}
+
+  /* ── Sections ─────────────────────────── */
+  section{padding:88px 0}
+  .section-head{text-align:center;max-width:640px;margin:0 auto 52px}
+
+  /* Problème */
+  .problem{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .pain-list{display:grid;gap:2px;background:var(--line);border-radius:var(--radius);overflow:hidden}
+  .pain{background:#fff;padding:22px 24px;display:flex;gap:18px;align-items:flex-start}
+  .pain-q{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:17px;
+    color:var(--navy);line-height:1.5;
+  }
+  .pain-cost{
+    margin-left:auto;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sage);
+    text-align:right;white-space:nowrap;padding-top:2px;
+  }
+  .problem-close{
+    text-align:center;margin-top:36px;font-size:19px;color:var(--navy);
+    font-family:'Fraunces',serif;font-weight:600;
+  }
+
+  /* Valeur */
+  .values{display:grid;grid-template-columns:1fr;gap:22px}
+  .value{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:30px 28px;position:relative;
+  }
+  .value-num{
+    font-family:'Fraunces',serif;font-size:13px;font-weight:600;color:var(--sage);
+    display:block;margin-bottom:12px;letter-spacing:.05em;
+  }
+  .value p{color:var(--muted);font-size:16px}
+  .value .gain{
+    display:inline-block;margin-top:16px;font-size:13px;font-weight:600;
+    color:var(--navy);background:#EAF2EE;padding:6px 12px;border-radius:20px;
+  }
+
+  /* CTA bandeau */
+  .cta-band{background:var(--navy);color:#fff;text-align:center;padding:72px 0}
+  .cta-band h2{color:#fff}
+  .cta-band p{color:var(--powder);margin-bottom:30px;font-size:18px}
+  .cta-band .hero-meta{color:rgba(255,255,255,.5)}
+
+  /* Founder */
+  .founder{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .founder-inner{display:grid;grid-template-columns:1fr;gap:32px;align-items:start}
+  .founder-quote{
+    font-family:'Fraunces',serif;font-size:22px;line-height:1.5;color:var(--navy);
+    font-weight:400;border-left:3px solid var(--sage);padding-left:22px;margin-bottom:24px;
+  }
+  .founder p{color:var(--muted);margin-bottom:14px}
+  .founder-sig{
+    margin-top:22px;padding-top:18px;border-top:1px solid var(--line);
+    font-size:14px;color:var(--navy);font-weight:600;
+  }
+  .founder-sig span{display:block;font-weight:400;color:var(--muted);font-size:13.5px;margin-top:2px}
+
+  /* Témoignages */
+  .quotes{display:grid;grid-template-columns:1fr;gap:20px}
+  .quote{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;
+  }
+  .quote p{font-size:16px;color:var(--ink);margin-bottom:16px}
+  .quote-who{display:flex;align-items:center;gap:12px}
+  .avatar{
+    width:38px;height:38px;border-radius:50%;background:var(--powder);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:600;font-size:14px;color:var(--navy);flex-shrink:0;
+  }
+  .quote-who strong{display:block;font-size:14px;color:var(--navy);font-weight:600}
+  .quote-who em{font-style:normal;font-size:13px;color:var(--muted)}
+  .beta-note{
+    text-align:center;margin-top:34px;font-size:14px;color:var(--muted);
+    background:#EEF3FB;border-radius:12px;padding:16px 20px;
+  }
+  .beta-note a{color:var(--sage-dark);font-weight:600}
+
+  /* FAQ */
+  .faq{max-width:720px;margin:0 auto}
+  details{
+    background:#fff;border:1px solid var(--line);border-radius:12px;
+    margin-bottom:10px;overflow:hidden;
+  }
+  summary{
+    padding:18px 22px;cursor:pointer;font-weight:600;color:var(--navy);font-size:16px;
+    list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;
+  }
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:'+';font-size:22px;color:var(--sage);font-weight:400;line-height:1}
+  details[open] summary::after{content:'−'}
+  details p{padding:0 22px 20px;color:var(--muted);font-size:15.5px}
+
+  /* Footer */
+  footer{background:var(--navy-deep);color:rgba(255,255,255,.55);padding:44px 0;text-align:center;font-size:14px}
+  footer a{color:rgba(255,255,255,.75);text-decoration:none;margin:0 10px}
+  footer a:hover{color:#fff}
+  .footer-brand{font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:#fff;margin-bottom:14px}
+  .footer-brand em{color:var(--sage);font-style:normal}
+
+  /* Reveal */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (min-width:860px){
+    .hero{padding:96px 0 110px}
+    .hero-grid{grid-template-columns:1.05fr .95fr;gap:60px}
+    .values{grid-template-columns:repeat(3,1fr)}
+    .quotes{grid-template-columns:repeat(3,1fr)}
+    .founder-inner{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+    .reveal{opacity:1;transform:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="/">rempl<em>a</em> care</a>
+    <a class="nav-cta" href="/beta">Télécharger</a>
+  </div>
+</nav>
+
+<!-- ─────────── HERO ─────────── -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">Infirmiers · Kinés · Libéraux remplaçants</p>
+      <h1>Tes journées valent de l'argent.<br><em>Sache lesquelles.</em></h1>
+      <p class="lead">
+        Pointe tes jours travaillés en un geste, vois ton chiffre d'affaires se calculer
+        tout seul, et garde une vision claire du mois qui vient. Sans Excel, sans attendre
+        le comptable, sans y penser le dimanche soir.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/beta">Télécharger l'app</a>
+        <a class="btn btn-ghost" href="#valeur">Voir ce que ça change</a>
+      </div>
+      <p class="hero-meta">Gratuit · iOS · Créée par un infirmier libéral remplaçant</p>
+    </div>
+
+    <!-- Signature : le calendrier qui s'allume et calcule -->
+    <div class="cal-card" aria-hidden="true">
+      <div class="cal-top">
+        <div class="cal-month">Mai</div>
+        <div class="cal-ca">
+          <span class="cal-ca-label">CA du mois</span>
+          <span class="cal-ca-val" id="caVal">0 €</span>
+        </div>
+      </div>
+      <div class="cal-dow">
+        <span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span>
+      </div>
+      <div class="cal-days" id="calDays"></div>
+      <div class="cal-legend">
+        <span><i class="dot work"></i>Jour travaillé</span>
+        <span><i class="dot off"></i>Jour off</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─────────── PROBLÈME ─────────── -->
+<section class="problem">
+  <div class="wrap narrow">
+    <div class="section-head reveal">
+      <p class="eyebrow">Le vrai coût du flou</p>
+      <h2>Tu remplaces. Mais tu pilotes ?</h2>
+      <p class="lead">Quatre questions simples. Si tu mets plus de dix secondes à répondre, c'est que ton planning te coûte quelque chose.</p>
+    </div>
+
+    <div class="pain-list reveal">
+      <div class="pain">
+        <p class="pain-q">« Combien j'ai gagné, ce mois-ci ? »</p>
+        <span class="pain-cost">Tu attends le comptable</span>
+      </div>
+      <div class="pain">
+        <p class="pain-q">« Il me reste combien de jours libres en juin ? »</p>
+        <span class="pain-cost">Tu comptes à la main</span>
+      </div>
+      <div class="pain">
+        <p class="pain-q">« Ce cabinet-là, il me rapporte vraiment ? »</p>
+        <span class="pain-cost">Tu devines</span>
+      </div>
+      <div class="pain">
+        <p class="pain-q">« Je peux accepter cette semaine en plus ? »</p>
+        <span class="pain-cost">Tu dis oui, puis tu regrettes</span>
+      </div>
+    </div>
+
+    <p class="problem-close reveal">
+      Un remplaçant qui ne voit pas son planning<br>ne choisit pas ses journées. Il les subit.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── VALEUR ─────────── -->
+<section id="valeur">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Ce que ça change</p>
+      <h2>Trois minutes par semaine.<br>Le reste, tu le récupères.</h2>
+    </div>
+
+    <div class="values">
+      <div class="value reveal">
+        <span class="value-num">Ton temps</span>
+        <h3>Fini le tableur du dimanche</h3>
+        <p>
+          Un tap pour pointer un jour. Une tournée créée une fois se répète toute seule.
+          Ton calendrier Apple ou Google s'importe en dix secondes — les jours déjà posés
+          deviennent des jours travaillés, sans re-saisie.
+        </p>
+        <span class="gain">≈ 2 h récupérées par mois</span>
+      </div>
+
+      <div class="value reveal">
+        <span class="value-num">Ton argent</span>
+        <h3>Ton CA, en temps réel</h3>
+        <p>
+          Le chiffre d'affaires du mois se calcule à mesure que tu remplis ton planning.
+          Brut, net, rétrocessions, moyenne par jour : tu vois où tu en es le 12 du mois,
+          pas trois mois plus tard.
+        </p>
+        <span class="gain">Zéro surprise en fin d'année</span>
+      </div>
+
+      <div class="value reveal">
+        <span class="value-num">Ta liberté</span>
+        <h3>Dire non, en connaissance de cause</h3>
+        <p>
+          Quand ton mois est visible d'un coup d'œil, tu sais si tu peux prendre cette
+          semaine en plus — ou si tu as déjà atteint ton objectif et que ce week-end,
+          il est à toi.
+        </p>
+        <span class="gain">Tu choisis tes journées</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── CTA 1 ─────────── -->
+<section class="cta-band">
+  <div class="wrap narrow reveal">
+    <h2>Ton prochain mois commence maintenant.</h2>
+    <p>Installe l'app, pointe ta première journée. Tu verras ton CA bouger dans la minute.</p>
+    <a class="btn btn-primary" href="/beta">Télécharger l'app — gratuit</a>
+    <p class="hero-meta">Version bêta iOS · 2 minutes d'installation · Aucune carte bancaire</p>
+  </div>
+</section>
+
+<!-- ─────────── FOUNDER ─────────── -->
+<section class="founder">
+  <div class="wrap narrow founder-inner reveal">
+    <div>
+      <p class="eyebrow">Pourquoi cette app existe</p>
+      <p class="founder-quote">
+        « Je suis infirmier libéral remplaçant. Pendant six ans, j'ai géré mon planning
+        sur un tableur et mon chiffre d'affaires dans ma tête. Ça ne marchait pas. »
+      </p>
+      <p>
+        Aucun outil n'était fait pour nous. Les logiciels de cabinet gèrent les patients,
+        pas notre activité. Les applis de compta parlent aux commerçants, pas aux libéraux
+        avec des rétrocessions et des tournées.
+      </p>
+      <p>
+        Alors j'ai construit celle que je voulais utiliser : un calendrier qui parle
+        remplacement, un suivi de CA qui comprend les rétrocessions, et rien d'autre.
+        Pas de fonctionnalité inutile. Pas de jargon. Juste l'outil que j'aurais aimé
+        avoir le jour où j'ai commencé.
+      </p>
+      <p>
+        RemplaCare est en bêta. Chaque retour que tu m'envoies change directement
+        ce que devient l'app.
+      </p>
+      <div class="founder-sig">
+        Samuel Huet
+        <span>Infirmier libéral remplaçant · Lyon · Créateur de RemplaCare</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── TÉMOIGNAGES ─────────── -->
+<!--
+  ⚠️ À REMPLIR AVEC DE VRAIS RETOURS BÊTA — ne publie pas de témoignages inventés.
+  Structure prête : remplace le contenu de chaque .quote par un retour réel
+  (demande l'autorisation, initiales + profession + ville suffisent).
+  Tant que tu n'en as pas, laisse cette section masquée (style="display:none")
+  et garde uniquement le bloc .beta-note qui, lui, est honnête et convertit très bien.
+-->
+<section id="temoignages">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Ils testent RemplaCare</p>
+      <h2>Les premiers retours</h2>
+      <p class="lead">L'app vient d'ouvrir en bêta. Voici ce que disent les remplaçants qui l'utilisent déjà.</p>
+    </div>
+
+    <div class="quotes reveal">
+      <div class="quote">
+        <p>« [Retour réel à insérer — ce que l'app lui a fait gagner concrètement : temps, clarté, argent.] »</p>
+        <div class="quote-who">
+          <div class="avatar">??</div>
+          <div>
+            <strong>Prénom N.</strong>
+            <em>IDEL remplaçante · Ville</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <p>« [Retour réel à insérer — idéalement sur le suivi de CA ou l'import du calendrier.] »</p>
+        <div class="quote-who">
+          <div class="avatar">??</div>
+          <div>
+            <strong>Prénom N.</strong>
+            <em>Kiné remplaçant · Ville</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <p>« [Retour réel à insérer — idéalement sur la simplicité ou le temps gagné.] »</p>
+        <div class="quote-who">
+          <div class="avatar">??</div>
+          <div>
+            <strong>Prénom N.</strong>
+            <em>IDEL remplaçant · Ville</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="beta-note reveal">
+      <strong>RemplaCare est en bêta ouverte.</strong> Tu fais partie des premiers à l'utiliser —
+      et tes retours façonnent directement la suite. <a href="/feedback">Dis-nous ce qui manque.</a>
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── FAQ ─────────── -->
+<section class="problem">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Avant de te lancer</p>
+      <h2>Les questions qu'on nous pose</h2>
+    </div>
+
+    <div class="faq reveal">
+      <details>
+        <summary>C'est vraiment gratuit ?</summary>
+        <p>Oui, entièrement, pendant toute la phase de bêta. Aucune carte bancaire n'est demandée. Certaines fonctions avancées deviendront payantes plus tard — le calendrier et le suivi de CA, eux, resteront accessibles gratuitement.</p>
+      </details>
+
+      <details>
+        <summary>Pourquoi je dois passer par TestFlight ?</summary>
+        <p>RemplaCare est en phase de test : elle n'est pas encore sur l'App Store classique. TestFlight est l'application officielle d'Apple pour installer une app avant sa sortie publique. L'installation prend deux minutes, et on te guide pas à pas.</p>
+      </details>
+
+      <details>
+        <summary>Mes données sont-elles en sécurité ?</summary>
+        <p>Tes données sont hébergées en Europe (Francfort), chiffrées, et ne sont ni vendues ni partagées. L'app ne collecte aucune donnée patient et ne demande pas ton numéro RPPS. Tu peux supprimer ton compte à tout moment depuis les réglages.</p>
+      </details>
+
+      <details>
+        <summary>Est-ce que ça remplace mon comptable ?</summary>
+        <p>Non, et ce n'est pas le but. RemplaCare te donne une vision claire et à jour de ton activité, à partir de ce que tu saisis. Les chiffres qu'elle affiche sont indicatifs : ton expert-comptable reste la référence pour tes obligations fiscales.</p>
+      </details>
+
+      <details>
+        <summary>Je suis titulaire, pas remplaçant. C'est pour moi ?</summary>
+        <p>L'app est conçue en priorité pour les remplaçants. Un mode titulaire existe, mais il est encore jeune. Si tu es titulaire et que tu veux l'essayer, tes retours nous sont particulièrement précieux.</p>
+      </details>
+
+      <details>
+        <summary>Et sur Android ?</summary>
+        <p>Pas encore. La version iOS est en bêta, Android suivra si la demande est là. Écris-nous pour qu'on te prévienne dès que c'est prêt.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── CTA FINAL ─────────── -->
+<section class="cta-band">
+  <div class="wrap narrow reveal">
+    <p class="eyebrow" style="color:var(--powder)">Dernière chose</p>
+    <h2>Le mois prochain, tu sauras.</h2>
+    <p>
+      Combien tu as travaillé. Combien tu as gagné. Et combien de journées
+      il te reste pour toi. Ça commence par un tap.
+    </p>
+    <a class="btn btn-primary" href="/beta">Installer RemplaCare</a>
+    <p class="hero-meta">Gratuit · iOS · Créée par un remplaçant, pour les remplaçants</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-brand">rempl<em>a</em> care</div>
+    <div>
+      <a href="/beta">Télécharger</a>
+      <a href="/feedback">Contact</a>
+      <a href="/cgu">CGU</a>
+      <a href="/confidentialite">Confidentialité</a>
+    </div>
+    <p style="margin-top:18px;font-size:13px;opacity:.6">© 2026 RemplaCare — contact@remplacare.fr</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── Calendrier signature ── */
+  const daysEl = document.getElementById('calDays');
+  const caEl   = document.getElementById('caVal');
+  // Mai : 1er = jeudi → 3 cases vides, puis 31 jours
+  const OFFSET = 3, TOTAL = 31, TAUX = 350;
+  // Jours travaillés : un vrai rythme de remplaçant (semaines pleines, week-ends off)
+  const WORK = [2,5,6,7,8,9,12,13,14,15,16,20,21,22,23,26,27,28,29,30];
+
+  const cells = [];
+  for(let i=0;i<OFFSET;i++){
+    const d=document.createElement('div'); d.className='day rest'; daysEl.appendChild(d);
+  }
+  for(let d=1; d<=TOTAL; d++){
+    const el=document.createElement('div');
+    el.className='day'; el.textContent=d;
+    daysEl.appendChild(el);
+    cells[d]=el;
+  }
+
+  const fmt = n => n.toLocaleString('fr-FR') + ' €';
+
+  if(reduce){
+    WORK.forEach(d => cells[d] && cells[d].classList.add('on'));
+    caEl.textContent = fmt(WORK.length * TAUX);
+    return;
+  }
+
+  let i = 0, ca = 0;
+  function light(){
+    if(i >= WORK.length) return;
+    const d = WORK[i++];
+    if(cells[d]) cells[d].classList.add('on');
+    ca += TAUX;
+    caEl.textContent = fmt(ca);
+    setTimeout(light, 90);
+  }
+  setTimeout(light, 500);
+
+  /* ── Reveal au scroll ── */
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+})();
+</script>
+
+</body>
+</html>

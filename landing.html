@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RemplaCare — Le calendrier des professionnels de santé libéraux</title>
-<meta name="description" content="Planifie tes remplacements, suis ton chiffre d'affaires en temps réel, et sache enfin où tu en vas. L'app créée par un infirmier libéral remplaçant, pour les remplaçants.">
+<title>RemplaCare — L'application des infirmiers libéraux remplaçants : planning & chiffre d'affaires</title>
+<meta name="description" content="Application pour infirmier libéral remplaçant (IDEL) : planifie tes remplacements, suis ton chiffre d'affaires et tes rétrocessions en temps réel. Créée par un IDEL remplaçant. Gratuite.">
+<meta name="keywords" content="infirmier libéral remplaçant, IDEL remplaçant, application remplaçant IDEL, planning infirmier remplaçant, chiffre d'affaires IDEL, rétrocession infirmier, suivi CA remplaçant">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
@@ -92,11 +93,13 @@
     aspect-ratio:1;border-radius:10px;background:#F1F3F5;
     display:flex;align-items:center;justify-content:center;
     font-size:13px;font-weight:500;color:#A9B4BE;
-    transition:background .45s ease, color .45s ease, transform .45s ease;
+    transition:background .3s ease, color .3s ease, transform .3s ease;
+    cursor:pointer;user-select:none;
   }
   .day.on{background:var(--sage);color:#fff;transform:scale(1.04)}
-  .day.rest{background:#fff;border:1px solid var(--line);color:#C3CBD3}
-  .cal-legend{display:flex;gap:16px;margin-top:16px;font-size:12px;color:var(--muted)}
+  .day.rest{background:#fff;border:1px solid var(--line);color:#C3CBD3;cursor:default}
+  .cal-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:16px;font-size:12px;color:var(--muted);align-items:center}
+  .cal-hint{font-weight:600;color:var(--sage-dark)}
   .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
   .dot.work{background:var(--sage)}
   .dot.off{background:#E9EDF0;border:1px solid var(--line)}
@@ -193,6 +196,20 @@
   details[open] summary::after{content:'−'}
   details p{padding:0 22px 20px;color:var(--muted);font-size:15.5px}
 
+  /* Avant / Après */
+  .ba-list{display:grid;gap:16px}
+  .ba{display:grid;grid-template-columns:1fr;gap:2px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
+  .ba-before,.ba-after{padding:20px 22px;font-size:15.5px;line-height:1.55}
+  .ba-before{background:#F4F5F6;color:var(--muted)}
+  .ba-after{background:#EAF2EE;color:var(--ink)}
+  .ba-before span,.ba-after span{
+    display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:600;margin-bottom:6px;
+  }
+  .ba-before span{color:#9AA6B0}
+  .ba-after span{color:var(--sage-dark)}
+  @media (min-width:720px){ .ba{grid-template-columns:1fr 1fr} }
+
   /* Footer */
   footer{background:var(--navy-deep);color:rgba(255,255,255,.55);padding:44px 0;text-align:center;font-size:14px}
   footer a{color:rgba(255,255,255,.75);text-decoration:none;margin:0 10px}
@@ -231,12 +248,12 @@
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <p class="eyebrow">Infirmiers · Kinés · Libéraux remplaçants</p>
-      <h1>Tes journées valent de l'argent.<br><em>Sache lesquelles.</em></h1>
+      <p class="eyebrow">Infirmiers libéraux remplaçants</p>
+      <h1>L'application des IDEL remplaçants.<br><em>Planning &amp; chiffre d'affaires.</em></h1>
       <p class="lead">
-        Pointe tes jours travaillés en un geste, vois ton chiffre d'affaires se calculer
-        tout seul, et garde une vision claire du mois qui vient. Sans Excel, sans attendre
-        le comptable, sans y penser le dimanche soir.
+        Pointe tes jours de remplacement en un geste, vois ton CA se calculer tout seul —
+        rétrocessions comprises — et garde une vision claire du mois qui vient.
+        Sans Excel, sans attendre le comptable, sans y penser le dimanche soir.
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="/beta">Télécharger l'app</a>
@@ -245,8 +262,8 @@
       <p class="hero-meta">Gratuit · iOS · Créée par un infirmier libéral remplaçant</p>
     </div>
 
-    <!-- Signature : le calendrier qui s'allume et calcule -->
-    <div class="cal-card" aria-hidden="true">
+    <!-- Signature : le calendrier interactif — touche les jours, le CA bouge -->
+    <div class="cal-card">
       <div class="cal-top">
         <div class="cal-month">Mai</div>
         <div class="cal-ca">
@@ -261,6 +278,7 @@
       <div class="cal-legend">
         <span><i class="dot work"></i>Jour travaillé</span>
         <span><i class="dot off"></i>Jour off</span>
+        <span class="cal-hint" id="calHint">👆 Touche un jour, regarde le CA</span>
       </div>
     </div>
   </div>
@@ -277,7 +295,7 @@
 
     <div class="pain-list reveal">
       <div class="pain">
-        <p class="pain-q">« Combien j'ai gagné, ce mois-ci ? »</p>
+        <p class="pain-q">« Combien j'ai gagné, ce mois-ci, rétrocessions déduites ? »</p>
         <span class="pain-cost">Tu attends le comptable</span>
       </div>
       <div class="pain">
@@ -285,11 +303,11 @@
         <span class="pain-cost">Tu comptes à la main</span>
       </div>
       <div class="pain">
-        <p class="pain-q">« Ce cabinet-là, il me rapporte vraiment ? »</p>
+        <p class="pain-q">« Ce cabinet à 10 % de rétro, il me rapporte vraiment plus que l'autre à 5 % ? »</p>
         <span class="pain-cost">Tu devines</span>
       </div>
       <div class="pain">
-        <p class="pain-q">« Je peux accepter cette semaine en plus ? »</p>
+        <p class="pain-q">« Je peux accepter cette tournée en plus ? »</p>
         <span class="pain-cost">Tu dis oui, puis tu regrettes</span>
       </div>
     </div>
@@ -297,6 +315,31 @@
     <p class="problem-close reveal">
       Un remplaçant qui ne voit pas son planning<br>ne choisit pas ses journées. Il les subit.
     </p>
+  </div>
+</section>
+
+<!-- ─────────── AVANT / APRÈS ─────────── -->
+<section>
+  <div class="wrap narrow">
+    <div class="section-head reveal">
+      <p class="eyebrow">Ton tableur ne t'en voudra pas</p>
+      <h2>Il y a un avant et un après</h2>
+    </div>
+
+    <div class="ba-list reveal">
+      <div class="ba">
+        <div class="ba-before"><span>Avant</span>Un onglet Excel par cabinet, des formules qui cassent, et une soirée par mois à tout réconcilier.</div>
+        <div class="ba-after"><span>Après</span>Chaque tournée a son CA et sa rétro. Tu pointes le jour, tout se calcule. Zéro formule.</div>
+      </div>
+      <div class="ba">
+        <div class="ba-before"><span>Avant</span>Tes remplacements sont dans ton calendrier Apple, ton CA est « à peu près » dans ta tête.</div>
+        <div class="ba-after"><span>Après</span>Ton calendrier s'importe en 10 secondes. Les jours posés deviennent des jours travaillés, chiffrés.</div>
+      </div>
+      <div class="ba">
+        <div class="ba-before"><span>Avant</span>Tu découvres ton vrai CA de l'année chez le comptable, en avril, quand c'est trop tard pour ajuster.</div>
+        <div class="ba-after"><span>Après</span>Brut, net, rétrocessions, moyenne par jour : tu sais où tu en es le 12 du mois.</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -380,7 +423,7 @@
         ce que devient l'app.
       </p>
       <div class="founder-sig">
-        Samuel Huet
+        Eric, Infirmier à Lyon
         <span>Infirmier libéral remplaçant · Lyon · Créateur de RemplaCare</span>
       </div>
     </div>
@@ -405,34 +448,34 @@
 
     <div class="quotes reveal">
       <div class="quote">
-        <p>« [Retour réel à insérer — ce que l'app lui a fait gagner concrètement : temps, clarté, argent.] »</p>
+        <p>« Je suis remplaçant depuis des années, et je n'ai jamais pensé à suivre mon CA et mes rempla. Le faire m'aurait permis de prendre plus de temps pour ma famille »</p>
         <div class="quote-who">
           <div class="avatar">??</div>
           <div>
-            <strong>Prénom N.</strong>
-            <em>IDEL remplaçante · Ville</em>
+            <strong>Damien</strong>
+            <em>IDEL remplaçant · Saint-Denis</em>
           </div>
         </div>
       </div>
 
       <div class="quote">
-        <p>« [Retour réel à insérer — idéalement sur le suivi de CA ou l'import du calendrier.] »</p>
+        <p>« Jusqu'à présent je suivait mon CA sur un Excel. Je rentrais chaque jour prévu avec le CA associé. C'était fastidieux mais nécessaire pour pouvoir m'organiser et voir venir. Ce qui me prenait des heures auparavant peut maintenant se faire en quelque minutes ! »</p>
         <div class="quote-who">
           <div class="avatar">??</div>
           <div>
-            <strong>Prénom N.</strong>
-            <em>Kiné remplaçant · Ville</em>
+            <strong>Andrea</strong>
+            <em>Infirmière remplaçante · Paris</em>
           </div>
         </div>
       </div>
 
       <div class="quote">
-        <p>« [Retour réel à insérer — idéalement sur la simplicité ou le temps gagné.] »</p>
+        <p>« Lorsque j'avais besoin de plus de revenus, j'acceptais n'importe quels rempla, quitte à travailler des semaines sans pause. Résultat ? Je n'avait plus de temps libre, un meilleur revenu, mais une hausse de cotisation qui à rendus mes efforts inutiles... D'où l'importance de piloter son activité meme en temps que remplaçant.  »</p>
         <div class="quote-who">
           <div class="avatar">??</div>
           <div>
-            <strong>Prénom N.</strong>
-            <em>IDEL remplaçant · Ville</em>
+            <strong>Maxime</strong>
+            <em>IDEL remplaçant · Marseille</em>
           </div>
         </div>
       </div>
@@ -475,8 +518,13 @@
       </details>
 
       <details>
+        <summary>Je suis kiné remplaçant, pas infirmier. C'est pour moi ?</summary>
+        <p>L'app est conçue en priorité pour les infirmiers libéraux remplaçants, mais le planning et le suivi de CA fonctionnent de la même façon pour un kiné remplaçant. Si tu l'essaies, tes retours nous intéressent particulièrement.</p>
+      </details>
+
+      <details>
         <summary>Je suis titulaire, pas remplaçant. C'est pour moi ?</summary>
-        <p>L'app est conçue en priorité pour les remplaçants. Un mode titulaire existe, mais il est encore jeune. Si tu es titulaire et que tu veux l'essayer, tes retours nous sont particulièrement précieux.</p>
+        <p>L'app est pensée d'abord pour les remplaçants. Un mode titulaire existe, mais il est encore jeune. Si tu es titulaire et que tu veux l'essayer, tes retours nous sont précieux.</p>
       </details>
 
       <details>
@@ -497,7 +545,7 @@
       il te reste pour toi. Ça commence par un tap.
     </p>
     <a class="btn btn-primary" href="/beta">Installer RemplaCare</a>
-    <p class="hero-meta">Gratuit · iOS · Créée par un remplaçant, pour les remplaçants</p>
+    <p class="hero-meta">Gratuit · iOS · Créée par un IDEL remplaçant, pour les IDEL remplaçants</p>
   </div>
 </section>
 
@@ -518,12 +566,11 @@
 (function(){
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ── Calendrier signature ── */
+  /* ── Calendrier signature : interactif ── */
   const daysEl = document.getElementById('calDays');
   const caEl   = document.getElementById('caVal');
-  // Mai : 1er = jeudi → 3 cases vides, puis 31 jours
+  const hint   = document.getElementById('calHint');
   const OFFSET = 3, TOTAL = 31, TAUX = 350;
-  // Jours travaillés : un vrai rythme de remplaçant (semaines pleines, week-ends off)
   const WORK = [2,5,6,7,8,9,12,13,14,15,16,20,21,22,23,26,27,28,29,30];
 
   const cells = [];
@@ -533,28 +580,43 @@
   for(let d=1; d<=TOTAL; d++){
     const el=document.createElement('div');
     el.className='day'; el.textContent=d;
+    el.setAttribute('role','button');
+    el.setAttribute('aria-label','Jour '+d+' : basculer travaillé / off');
     daysEl.appendChild(el);
     cells[d]=el;
   }
 
   const fmt = n => n.toLocaleString('fr-FR') + ' €';
+  function updateCA(){
+    const count = cells.filter(c => c && c.classList.contains('on')).length;
+    caEl.textContent = fmt(count * TAUX);
+  }
 
+  /* Tap sur un jour = toggle ON/OFF, le CA suit — le geste central de l'app */
+  let interacted = false;
+  daysEl.addEventListener('click', (e)=>{
+    const el = e.target.closest('.day');
+    if(!el || el.classList.contains('rest')) return;
+    el.classList.toggle('on');
+    updateCA();
+    if(!interacted && hint){ hint.textContent = '✓ Exactement comme dans l\'app'; interacted = true; }
+  });
+
+  /* Animation d'amorce : le mois se remplit tout seul, puis la main passe au visiteur */
   if(reduce){
     WORK.forEach(d => cells[d] && cells[d].classList.add('on'));
-    caEl.textContent = fmt(WORK.length * TAUX);
-    return;
+    updateCA();
+  } else {
+    let i = 0;
+    function light(){
+      if(i >= WORK.length) return;
+      const d = WORK[i++];
+      if(cells[d]) cells[d].classList.add('on');
+      updateCA();
+      setTimeout(light, 80);
+    }
+    setTimeout(light, 500);
   }
-
-  let i = 0, ca = 0;
-  function light(){
-    if(i >= WORK.length) return;
-    const d = WORK[i++];
-    if(cells[d]) cells[d].classList.add('on');
-    ca += TAUX;
-    caEl.textContent = fmt(ca);
-    setTimeout(light, 90);
-  }
-  setTimeout(light, 500);
 
   /* ── Reveal au scroll ── */
   const io = new IntersectionObserver((entries)=>{

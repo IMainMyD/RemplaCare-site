@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur de cotisations — infirmier libéral remplaçant</title>
+<meta name="description" content="Estime tes cotisations URSSAF et CARPIMKO et ton net d'infirmier libéral remplaçant, à partir de ton CA journalier, mensuel ou annuel. Calculs fournis par le moteur officiel URSSAF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1C324A; --sage:#77A895; --sage-soft:#E3EFEC; --powder:#BFD6F6;
+    --green:#2EBB6F; --bg:#FBFBF9; --surface:#FFFFFF; --border:#E5E5E0;
+    --text:#1C324A; --text-2:#6B7A88; --danger:#E84545;
+    --radius-l:24px; --radius-m:18px; --radius-s:12px;
+    --title:"Fraunces",Georgia,serif; --body:"Jost","Helvetica Neue",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);
+       font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:680px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-family:var(--title);font-weight:600;font-size:30px;line-height:1.2;margin:0 0 8px}
+  .sub{color:var(--text-2);font-size:15px;margin:0 0 28px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-l);
+        padding:24px;margin-bottom:20px}
+  label{display:block;font-weight:500;font-size:14px;margin-bottom:8px}
+  .hint{color:var(--text-2);font-size:13px;font-weight:400;margin-top:6px}
+  input[type=number],select{
+    width:100%;padding:13px 14px;font-family:var(--body);font-size:16px;color:var(--text);
+    background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-m);appearance:none}
+  input[type=number]:focus,select[type]:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+         background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{flex:1 1 30%;padding:11px 8px;font-family:var(--body);font-size:14px;font-weight:500;
+    color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:999px;cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--sage-soft);border-color:var(--sage);color:var(--text)}
+  .field{margin-bottom:18px}
+  .field:last-child{margin-bottom:0}
+  .cta{width:100%;padding:15px;margin-top:4px;font-family:var(--body);font-size:16px;font-weight:500;
+       color:#fff;background:var(--navy);border:0;border-radius:999px;cursor:pointer}
+  .cta:disabled{opacity:.45;cursor:not-allowed}
+  .recap{margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-s);
+         font-size:14px;color:var(--text-2)}
+  .recap b{color:var(--text);font-weight:500}
+  .hero{background:var(--navy);color:#fff;border-radius:var(--radius-l);padding:26px 24px;text-align:center}
+  .hero .over{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--powder);margin:0 0 6px}
+  .hero .amount{font-family:var(--title);font-size:42px;line-height:1;margin:0}
+  .hero .note{font-size:13px;color:var(--powder);margin:8px 0 0}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);padding:16px}
+  .tile .k{font-size:12px;color:var(--text-2);margin:0 0 4px}
+  .tile .v{font-family:var(--title);font-size:22px;margin:0}
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px}
+  td{padding:9px 0;border-bottom:1px solid var(--border)}
+  td:last-child{text-align:right;font-weight:500}
+  tr:last-child td{border-bottom:0}
+  h2{font-family:var(--title);font-weight:600;font-size:19px;margin:0 0 10px}
+  .legal{font-size:13px;color:var(--text-2)}
+  .legal ul{padding-left:18px;margin:10px 0}
+  .legal li{margin-bottom:6px}
+  .err{background:#FBE5E5;border:1px solid var(--danger);color:#8A1F1F;
+       border-radius:var(--radius-m);padding:14px;font-size:14px}
+  .hidden{display:none}
+  .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);
+        border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite;vertical-align:-2px}
+  @keyframes r{to{transform:rotate(360deg)}}
+  @media(max-width:420px){.grid{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:36px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Combien te reste-t-il vraiment ?</h1>
+  <p class="sub">Estime tes cotisations URSSAF et CARPIMKO d'infirmier libéral remplaçant,
+     et ce qu'il faut mettre de côté chaque mois. Gratuit, sans inscription.</p>
+
+  <div class="card">
+    <div class="field">
+      <label id="lbl-periode">Ton chiffre d'affaires est&nbsp;:</label>
+      <div class="seg" role="group" aria-labelledby="lbl-periode">
+        <button type="button" data-p="jour" aria-pressed="true">Journalier</button>
+        <button type="button" data-p="mois" aria-pressed="false">Mensuel</button>
+        <button type="button" data-p="an" aria-pressed="false">Annuel</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="ca" id="ca-label">Chiffre d'affaires par jour travaillé</label>
+      <input type="number" id="ca" min="0" step="10" inputmode="numeric" placeholder="350">
+      <p class="hint">Ce que tu encaisses réellement, <b>rétrocession déjà déduite</b> —
+         c'est la base sur laquelle tu cotises.</p>
+    </div>
+
+    <div class="field" id="f-jours">
+      <label for="jours">Jours travaillés par mois</label>
+      <select id="jours"></select>
+    </div>
+
+    <div class="field hidden" id="f-mois">
+      <label for="mois">Mois travaillés dans l'année</label>
+      <select id="mois"></select>
+    </div>
+
+    <div class="field">
+      <label for="regime">Ton régime fiscal</label>
+      <select id="regime">
+        <option value="micro_bnc">Micro-BNC (abattement forfaitaire)</option>
+        <option value="reel">Frais réels (déclaration contrôlée)</option>
+      </select>
+    </div>
+
+    <div class="field hidden" id="f-charges">
+      <label for="charges">Charges professionnelles annuelles</label>
+      <input type="number" id="charges" min="0" step="100" inputmode="numeric" placeholder="6000">
+      <p class="hint">Véhicule, matériel, logiciel, assurance, cotisation ordinale…</p>
+    </div>
+
+    <button class="cta" id="go">Calculer mon net</button>
+    <div class="recap" id="recap"></div>
+  </div>
+
+  <div id="erreur" class="card err hidden" role="alert"></div>
+
+  <div id="resultats" class="hidden">
+    <div class="hero">
+      <p class="over">Il te reste, par mois</p>
+      <p class="amount" id="r-net-mois">—</p>
+      <p class="note">après cotisations, avant impôt sur le revenu</p>
+    </div>
+
+    <div class="grid">
+      <div class="tile">
+        <p class="k">À provisionner par mois</p>
+        <p class="v" id="r-prov">—</p>
+      </div>
+      <div class="tile">
+        <p class="k">Net annuel</p>
+        <p class="v" id="r-net-an">—</p>
+      </div>
+      <div class="tile">
+        <p class="k">Cotisations annuelles</p>
+        <p class="v" id="r-cotis">—</p>
+      </div>
+      <div class="tile">
+        <p class="k">CA annuel retenu</p>
+        <p class="v" id="r-ca">—</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:20px">
+      <h2>Détail de tes cotisations retraite</h2>
+      <table>
+        <tr><td>Retraite de base (CNAVPL)</td><td id="d-base">—</td></tr>
+        <tr><td>Retraite complémentaire (CARPIMKO)</td><td id="d-comp">—</td></tr>
+        <tr><td>Invalidité-décès</td><td id="d-inv">—</td></tr>
+        <tr><td>ASV</td><td id="d-asv">—</td></tr>
+      </table>
+      <p class="hint" id="d-reste"></p>
+    </div>
+  </div>
+
+  <div class="card legal">
+    <h2>À lire avant d'utiliser ces chiffres</h2>
+    <ul>
+      <li>Ce simulateur s'adresse aux <b>auxiliaires médicaux en BNC</b>, dont les infirmiers
+          libéraux remplaçants. Il ne couvre pas les sociétés d'exercice libéral (SELARL, SELAS).</li>
+      <li>Il ne calcule pas l'<b>impôt sur le revenu</b> : le net affiché est un net avant impôt.</li>
+      <li>Il ne calcule pas la <b>cotisation ordinale</b> — à ajouter dans tes charges.</li>
+      <li>Il ne gère pas le cas d'un <b>changement de régime fiscal en cours d'année</b>.</li>
+      <li>Les montants sont <b>indicatifs</b>. Ils ne se substituent pas aux décomptes réels de
+          l'URSSAF, de la CARPIMKO ou de l'administration fiscale, ni à l'avis de ton
+          expert-comptable.</li>
+    </ul>
+    <p style="margin-bottom:0">Calculs fournis par le moteur officiel URSSAF
+       (<a href="https://mon-entreprise.urssaf.fr" target="_blank" rel="noopener">mon-entreprise</a>),
+       barèmes <span id="annee"></span>.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ── Configuration ──────────────────────────────────────────────────────────
+  // Edge Function Supabase qui interroge le moteur URSSAF. La clé est la clé
+  // ANON (publique par conception) : elle ne donne accès à aucune donnée.
+  var ENDPOINT = "https://eyackplrxyqsrrpsmarz.supabase.co/functions/v1/compute-net";
+  var ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5YWNrcGxyeHlxc3JycHNtYXJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDMxMjUsImV4cCI6MjA5NDA3OTEyNX0.Png9VY6FIYLIDY5EeI0avymkxOz9EJcGyo9MBbI86MY";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var periode = "jour";
+
+  // ── Remplissage des listes ─────────────────────────────────────────────────
+  var sJours = $("jours");
+  for (var j = 1; j <= 31; j++) {
+    sJours.add(new Option(j + (j === 1 ? " jour" : " jours"), j, false, j === 18));
+  }
+  var sMois = $("mois");
+  for (var m = 1; m <= 12; m++) {
+    sMois.add(new Option(m + (m === 1 ? " mois" : " mois"), m, false, m === 11));
+  }
+  $("annee").textContent = new Date().getFullYear();
+
+  // ── Bascule de période ─────────────────────────────────────────────────────
+  var LABELS = {
+    jour: "Chiffre d'affaires par jour travaillé",
+    mois: "Chiffre d'affaires par mois travaillé",
+    an:   "Chiffre d'affaires annuel"
+  };
+  var PLACEHOLDERS = { jour: "350", mois: "6000", an: "60000" };
+
+  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function(btn){
+    btn.addEventListener("click", function(){
+      periode = btn.getAttribute("data-p");
+      Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function(b){
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      $("ca-label").textContent = LABELS[periode];
+      $("ca").placeholder = PLACEHOLDERS[periode];
+      // Journalier : on demande les jours/mois, puis on annualise sur 12 mois.
+      // Mensuel : on demande le nombre de mois réellement travaillés.
+      // Annuel : rien à demander.
+      $("f-jours").classList.toggle("hidden", periode !== "jour");
+      $("f-mois").classList.toggle("hidden", periode !== "mois");
+      majRecap();
+    });
+  });
+
+  $("regime").addEventListener("change", function(){
+    $("f-charges").classList.toggle("hidden", $("regime").value !== "reel");
+    majRecap();
+  });
+
+  ["ca","jours","mois","charges"].forEach(function(id){
+    $(id).addEventListener("input", majRecap);
+    $(id).addEventListener("change", majRecap);
+  });
+
+  // ── Annualisation ──────────────────────────────────────────────────────────
+  function caAnnuel(){
+    var v = parseFloat($("ca").value);
+    if (!isFinite(v) || v <= 0) return 0;
+    if (periode === "jour") return v * parseInt(sJours.value, 10) * 12;
+    if (periode === "mois") return v * parseInt(sMois.value, 10);
+    return v;
+  }
+
+  function euros(n){
+    return Math.round(n).toLocaleString("fr-FR") + " €";
+  }
+
+  function majRecap(){
+    var ca = caAnnuel();
+    if (ca <= 0) { $("recap").textContent = ""; return; }
+    var detail = periode === "jour"
+      ? parseInt(sJours.value,10) + " jours/mois sur 12 mois"
+      : periode === "mois"
+        ? sMois.value + " mois travaillés"
+        : "saisi directement";
+    $("recap").innerHTML = "CA annuel retenu : <b>" + euros(ca) + "</b> — " + detail + ".";
+  }
+
+  // ── Appel ──────────────────────────────────────────────────────────────────
+  var MESSAGES = {
+    PARAMS_INVALIDES: "Les montants saisis ne permettent pas le calcul. Vérifie ton CA et tes charges.",
+    API_INDISPONIBLE: "Le service de calcul URSSAF est momentanément indisponible. Réessaie plus tard.",
+    TIMEOUT:          "Le calcul a mis trop de temps. Réessaie dans un instant.",
+    REGLE_INCONNUE:   "Le calcul est temporairement indisponible : les règles URSSAF ont changé.",
+    RESEAU:           "Impossible de joindre le service de calcul. Vérifie ta connexion."
+  };
+
+  function erreur(code){
+    $("resultats").classList.add("hidden");
+    var box = $("erreur");
+    box.textContent = MESSAGES[code] || MESSAGES.RESEAU;
+    box.classList.remove("hidden");
+  }
+
+  $("go").addEventListener("click", function(){
+    var ca = caAnnuel();
+    if (ca <= 0) { erreur("PARAMS_INVALIDES"); return; }
+    if (ca > 1000000) { erreur("PARAMS_INVALIDES"); return; }
+
+    var regime = $("regime").value;
+    var charges = regime === "reel" ? (parseFloat($("charges").value) || 0) : 0;
+    if (charges > ca) { erreur("PARAMS_INVALIDES"); return; }
+
+    var btn = $("go");
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span> Calcul en cours…';
+    $("erreur").classList.add("hidden");
+
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + ANON_KEY,
+        "apikey": ANON_KEY
+      },
+      body: JSON.stringify({
+        caAnnuel: Math.round(ca),
+        chargesAnnuelles: Math.round(charges),
+        regime: regime,
+        remplacant: true
+      })
+    })
+    .then(function(r){
+      return r.json().then(function(data){
+        if (!r.ok) throw new Error((data && data.code) || "RESEAU");
+        return data;
+      });
+    })
+    .then(function(data){
+      afficher(data.resultat, Math.round(ca));
+    })
+    .catch(function(e){
+      erreur(MESSAGES[e.message] ? e.message : "RESEAU");
+    })
+    .finally(function(){
+      btn.disabled = false;
+      btn.textContent = "Recalculer";
+    });
+  });
+
+  function afficher(r, ca){
+    $("r-net-mois").textContent = euros(r.netMensuel);
+    $("r-net-an").textContent   = euros(r.netApresCharges);
+    $("r-ca").textContent       = euros(ca);
+    $("r-prov").textContent     = r.aProvisionnerMensuel == null ? "—" : euros(r.aProvisionnerMensuel);
+    $("r-cotis").textContent    = r.cotisationsAnnuelles == null ? "—" : euros(r.cotisationsAnnuelles);
+
+    var d = r.detail || {};
+    var somme = 0, connus = 0;
+    [["d-base", d.retraiteBase], ["d-comp", d.carpimkoComplementaire],
+     ["d-inv", d.invaliditeDeces], ["d-asv", d.asv]].forEach(function(pair){
+      var v = pair[1];
+      $(pair[0]).textContent = (v == null) ? "—" : euros(v);
+      if (v != null) { somme += v; connus++; }
+    });
+
+    // Le reste des cotisations (maladie, CSG-CRDS, formation) n'est pas détaillé
+    // par le moteur : on l'affiche comme un solde plutôt que de le passer sous
+    // silence, sans jamais inventer sa composition.
+    if (r.cotisationsAnnuelles != null && connus === 4) {
+      var reste = r.cotisationsAnnuelles - somme;
+      $("d-reste").textContent = reste > 0
+        ? "Le reste (" + euros(reste) + ") couvre la maladie, la CSG-CRDS et la formation professionnelle."
+        : "";
+    } else {
+      $("d-reste").textContent = "";
+    }
+
+    $("resultats").classList.remove("hidden");
+    $("resultats").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  majRecap();
+})();
+</script>
+</body>
+</html>

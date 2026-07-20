@@ -67,9 +67,46 @@
         border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite;vertical-align:-2px}
   @keyframes r{to{transform:rotate(360deg)}}
   @media(max-width:420px){.grid{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:36px}}
+
+  /* ── Menu de navigation ───────────────────────────────────────────────── */
+  .nav{position:sticky;top:0;z-index:10;padding:12px 20px;
+       background:rgba(251,251,249,.85);backdrop-filter:blur(8px);
+       -webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+  .nav-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;
+             justify-content:space-between;gap:16px}
+  .brand{font-family:var(--title);font-weight:600;font-size:20px;color:var(--navy);
+         text-decoration:none;white-space:nowrap}
+  .brand span{color:var(--sage)}
+  .nav-links{display:flex;align-items:center;gap:6px}
+  .nav-links a.link{font-size:14px;font-weight:500;color:var(--text-2);
+                    text-decoration:none;padding:8px 12px;border-radius:999px}
+  .nav-links a.link:hover{color:var(--text)}
+  .nav-cta{font-size:14px;font-weight:500;color:#fff;background:var(--navy);
+           text-decoration:none;padding:9px 16px;border-radius:999px;white-space:nowrap}
+  @media(max-width:420px){
+    .nav{padding:10px 16px}
+    .brand{font-size:18px}
+    .nav-links a.link{display:none}
+  }
 </style>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     👇 UN SEUL ENDROIT À MODIFIER : remplace REMPLACE_MOI par ton vrai lien
+     (App Store, lien TestFlight public, ou ta page liste d'attente).
+     Tant que ce n'est pas fait, le bouton renvoie vers l'accueil.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="https://www.remplacare.fr">rempl<span>a</span> care</a>
+    <nav class="nav-links" aria-label="Navigation principale">
+      <a class="link" href="https://www.remplacare.fr">Accueil</a>
+      <a class="nav-cta" href="https://www.remplacare.fr">Télécharger l'app</a>
+    </nav>
+  </div>
+</header>
+
 <div class="wrap">
 
   <h1>Combien te reste-t-il vraiment ?</h1>

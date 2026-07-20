@@ -10,9 +10,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#1C324A; --sage:#77A895; --sage-soft:#E3EFEC; --powder:#BFD6F6;
-    --green:#2EBB6F; --bg:#FBFBF9; --surface:#FFFFFF; --border:#E5E5E0;
-    --text:#1C324A; --text-2:#6B7A88; --danger:#E84545;
+    --navy:#1C324A; --sage:#77A895; --sage-dark:#4E7A67; --sage-soft:#E3EFEC; --powder:#BFD6F6;
+    --green:#2EBB6F; --bg:#FAFAF7; --surface:#FFFFFF; --border:#E4E8EC;
+    --text:#1C324A; --text-2:#5A6B7B; --danger:#E84545;
     --radius-l:24px; --radius-m:18px; --radius-s:12px;
     --title:"Fraunces",Georgia,serif; --body:"Jost","Helvetica Neue",Arial,sans-serif;
   }
@@ -68,23 +68,25 @@
   @keyframes r{to{transform:rotate(360deg)}}
   @media(max-width:420px){.grid{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:36px}}
 
-  /* ── Menu de navigation ───────────────────────────────────────────────── */
-  .nav{position:sticky;top:0;z-index:10;padding:12px 20px;
-       background:rgba(251,251,249,.85);backdrop-filter:blur(8px);
-       -webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+  /* ── Menu de navigation (identique à la landing) ──────────────────────── */
+  .nav{position:sticky;top:0;z-index:50;padding:14px 20px;
+       background:rgba(28,50,74,.96);backdrop-filter:blur(8px);
+       -webkit-backdrop-filter:blur(8px)}
   .nav-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;
              justify-content:space-between;gap:16px}
-  .brand{font-family:var(--title);font-weight:600;font-size:20px;color:var(--navy);
+  .brand{font-family:var(--title);font-weight:700;font-size:20px;color:#fff;
          text-decoration:none;white-space:nowrap}
-  .brand span{color:var(--sage)}
-  .nav-links{display:flex;align-items:center;gap:6px}
-  .nav-links a.link{font-size:14px;font-weight:500;color:var(--text-2);
-                    text-decoration:none;padding:8px 12px;border-radius:999px}
-  .nav-links a.link:hover{color:var(--text)}
-  .nav-cta{font-size:14px;font-weight:500;color:#fff;background:var(--navy);
-           text-decoration:none;padding:9px 16px;border-radius:999px;white-space:nowrap}
+  .brand em{color:var(--sage);font-style:normal}
+  .nav-links{display:flex;align-items:center;gap:8px}
+  .nav-links a.link{font-size:14px;font-weight:500;color:rgba(255,255,255,.75);
+                    text-decoration:none;padding:8px 10px;border-radius:999px}
+  .nav-links a.link:hover{color:#fff}
+  .nav-cta{font-size:14px;font-weight:600;color:#fff;background:var(--sage-dark);
+           text-decoration:none;padding:10px 18px;border-radius:22px;white-space:nowrap;
+           transition:background .2s}
+  .nav-cta:hover{background:#3F6354}
   @media(max-width:420px){
-    .nav{padding:10px 16px}
+    .nav{padding:12px 16px}
     .brand{font-size:18px}
     .nav-links a.link{display:none}
   }
@@ -92,17 +94,12 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════════════
-     👇 UN SEUL ENDROIT À MODIFIER : remplace REMPLACE_MOI par ton vrai lien
-     (App Store, lien TestFlight public, ou ta page liste d'attente).
-     Tant que ce n'est pas fait, le bouton renvoie vers l'accueil.
-     ═══════════════════════════════════════════════════════════════════════ -->
 <header class="nav">
   <div class="nav-inner">
-    <a class="brand" href="https://www.remplacare.fr">rempl<span>a</span> care</a>
+    <a class="brand" href="/">rempl<em>a</em> care</a>
     <nav class="nav-links" aria-label="Navigation principale">
-      <a class="link" href="https://www.remplacare.fr">Accueil</a>
-      <a class="nav-cta" href="https://www.remplacare.fr">Télécharger l'app</a>
+      <a class="link" href="/">Accueil</a>
+      <a class="nav-cta" href="/beta">Télécharger l'app</a>
     </nav>
   </div>
 </header>

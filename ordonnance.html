@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Générateur d'ordonnance — infirmier libéral</title>
+<meta name="description" content="Remplis et imprime ton ordonnance infirmière au format A4. Rien n'est enregistré : le document est fabriqué dans ton navigateur et n'en sort jamais.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Palette reprise du simulateur de cotisations : les pages web forment une
+     famille, elles ne suivent pas la palette de l'app mobile. */
+  :root{
+    --navy:#1C324A; --sage:#77A895; --sage-soft:#E3EFEC;
+    --bg:#FBFBF9; --surface:#FFFFFF; --border:#E5E5E0;
+    --text:#1C324A; --text-2:#6B7A88;
+    --radius-l:24px; --radius-m:18px; --radius-s:12px;
+    --title:"Fraunces",Georgia,serif; --body:"Jost","Helvetica Neue",Arial,sans-serif;
+
+    /* ── DA du document, relevée dans ORDONNANCE_VF.pdf ──────────────────────
+       Ces valeurs ne sont pas choisies : elles sont extraites du gabarit, teinte
+       par teinte et carte par carte. Les modifier change le document. */
+    --doc-inf:    #F7FBFD;   /* carte infirmier — blanc bleuté        */
+    --doc-pat:    #EAEED9;   /* carte patient — crème olive           */
+    --doc-gris:   #D4D8DD;   /* cartes ALD et renouvelable            */
+    --doc-presc:  #F8EBE7;   /* carte prescription — rose pâle        */
+    --doc-texte:  #2C2E35;   /* corps du texte                        */
+    --doc-navy:   #1E324A;   /* titres de bloc                        */
+    --doc-filet:  rgba(0,0,0,.36);   /* filets, 0,25 pt dans l'original */
+    --doc-rayon:  4.2mm;     /* rayon 12 pt des coins                 */
+
+    /* Épaisseur des filets. À l'écran, les 0,25 pt du gabarit valent 0,09 mm,
+       soit moins d'un pixel : le navigateur les escamote purement et simplement.
+       On force donc 1 px à l'écran, et on rend sa finesse d'origine au filet
+       pour l'impression, où la résolution la restitue. */
+    --filet-ep: 1px;
+
+    /* Pas des lignes réglées de la prescription : 6 filets espacés de 32,6 pt
+       dans le gabarit. Le texte partage cette hauteur de ligne, c'est ce qui
+       garantit qu'il tombe dessus au lieu de flotter entre deux. */
+    --regle: 11.5mm;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);
+       font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1240px;margin:0 auto;padding:32px 20px 64px}
+  h1{font-family:var(--title);font-weight:600;font-size:30px;line-height:1.2;margin:0 0 8px}
+  .sub{color:var(--text-2);font-size:15px;margin:0 0 28px;max-width:640px}
+  .cols{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:1020px){ .cols{grid-template-columns:minmax(0,400px) minmax(0,1fr);align-items:start} }
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-l);
+        padding:24px;margin-bottom:20px}
+  h2{font-family:var(--title);font-weight:600;font-size:19px;margin:0 0 16px}
+  label{display:block;font-weight:500;font-size:14px;margin-bottom:8px}
+  .hint{color:var(--text-2);font-size:13px;font-weight:400;margin-top:6px}
+  input[type=text],textarea,select{
+    width:100%;padding:13px 14px;font-family:var(--body);font-size:16px;color:var(--text);
+    background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-m);appearance:none}
+  textarea{min-height:130px;resize:vertical;line-height:1.45}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+         background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
+  .field{margin-bottom:18px}
+  .field:last-child{margin-bottom:0}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .seg{display:flex;gap:8px}
+  .seg button{flex:1;padding:11px 8px;font-family:var(--body);font-size:14px;font-weight:500;
+    color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:999px;cursor:pointer}
+  .seg button[aria-pressed=true]{background:var(--sage-soft);border-color:var(--sage);color:var(--text)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:15px 20px;font-family:var(--body);font-size:16px;font-weight:500;cursor:pointer;
+    border-radius:999px;border:1px solid transparent;background:var(--navy);color:#fff}
+  .btn.secondary{background:var(--surface);border-color:var(--border);color:var(--text)}
+  .suggestions{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .suggestions button{text-align:left;padding:10px 12px;font-family:var(--body);font-size:14px;
+    color:var(--text);background:var(--sage-soft);border:1px solid var(--sage);
+    border-radius:var(--radius-s);cursor:pointer}
+  #sigPad{width:100%;height:140px;background:var(--bg);border:1px dashed var(--border);
+          border-radius:var(--radius-m);touch-action:none;display:block}
+  /* Mentions légales : l'encadré jaune est retiré, le texte reste. Il n'est pas
+     décoratif — la spec du projet impose un avertissement clair sur le fait que
+     l'IDEL reste seul responsable du document qu'il signe. Il passe donc en
+     petites lignes discrètes plutôt que d'être supprimé. */
+  .legal{padding:4px 2px 0;font-size:12px;line-height:1.5;color:var(--text-2)}
+  .legal strong{font-weight:500;color:var(--text)}
+  .cta{background:var(--sage-soft);border:1px solid var(--sage);border-radius:var(--radius-l);
+       padding:24px;text-align:center;margin-top:20px}
+  .cta a{color:var(--navy);font-weight:500}
+
+  /* ══════════════════════════════════════════════════════════════════════════
+     LE DOCUMENT — reproduction A4 de ORDONNANCE_VF.pdf.
+     Tout est en millimètres pour que l'écran et le papier disent la même chose.
+     C'est ce bloc, et lui seul, qu'il faut retoucher pour faire évoluer
+     l'ordonnance : le reste de la page n'est qu'un formulaire qui l'alimente.
+     ══════════════════════════════════════════════════════════════════════════ */
+  .doc-shell{background:var(--surface);border:1px solid var(--border);
+             border-radius:var(--radius-l);padding:16px;overflow:auto}
+  /* Les cartes sont positionnées en absolu aux coordonnées relevées dans le
+     gabarit, converties en millimètres (1 pt = 0,3528 mm) et rapportées au haut
+     de page. Le contenu, lui, coule normalement à l'intérieur. */
+  .doc{
+    position:relative;
+    width:210mm;height:297mm;background:#fff;color:var(--doc-texte);
+    font-family:var(--body);font-size:10.5pt;line-height:1.35;
+    transform-origin:top left;margin:0 auto;
+  }
+  /* Titre : 42 pt dans le gabarit, centré sur la page. */
+  .doc-titre{position:absolute;left:0;right:0;top:14mm;
+             font-family:var(--title);font-weight:600;font-size:42pt;line-height:1;
+             text-align:center;margin:0;color:var(--doc-navy)}
+  .carte{position:absolute;border-radius:var(--doc-rayon);padding:5mm 6mm;
+         display:flex;flex-direction:column}
+  .c-inf   {left:12.7mm;  top:50.1mm;  width:86.1mm; height:87.5mm; background:var(--doc-inf)}
+  .c-pat   {left:111.1mm; top:50.1mm;  width:86.1mm; height:87.5mm; background:var(--doc-pat)}
+  /* ALD et Renouvelable : le gabarit leur donne deux hauteurs différentes
+     (39,9 et 48,7 mm) parce que la seconde porte en plus le champ « Durée ».
+     Elles sont ici égalisées à 44,3 mm — la moyenne — en conservant l'écart de
+     4,9 mm qui les sépare et l'aplomb du bloc, qui commence et finit toujours
+     aux mêmes hauteurs que la carte de prescription voisine. */
+  .c-ald   {left:12.7mm;  top:148.5mm; width:52.2mm; height:44.3mm; background:var(--doc-gris)}
+  .c-ren   {left:12.7mm;  top:197.7mm; width:52.2mm; height:44.3mm; background:var(--doc-gris)}
+  .c-presc {left:79.0mm;  top:148.9mm; width:118.2mm;height:93.1mm; background:var(--doc-presc)}
+
+  /* Les intitulés de bloc sont à 12 pt dans le gabarit. La casse n'est PAS
+     uniforme : « IDENTIFICATION… » et « PRESCRIPTION » y sont en capitales,
+     « En rapport avec ALD » et « Renouvelable » non. On écrit donc le texte tel
+     quel, sans text-transform qui uniformiserait à tort. */
+  .doc-bloc-titre{font-family:var(--body);font-size:12pt;font-weight:500;
+                  color:var(--doc-navy);margin:0 0 4mm}
+  /* L'écart généreux sous le titre ne vaut que pour les deux grands encadrés
+     d'identification. Appliqué partout, il faisait déborder les cases à cocher
+     hors des petites cartes, qui font moins de la moitié de leur hauteur. */
+  .c-inf .doc-bloc-titre, .c-pat .doc-bloc-titre{margin-bottom:11mm}
+  .doc-champ{margin-bottom:4.5mm}
+  .doc-lib{font-size:12pt;color:var(--doc-texte);margin:0 0 .6mm}
+  /* La valeur repose sur un filet — la ligne du gabarit. Même boîte, donc
+     impossible de les désaligner. */
+  .doc-val{min-height:5.6mm;border-bottom:var(--filet-ep) solid var(--doc-filet);
+           padding-bottom:.6mm;white-space:pre-wrap;word-break:break-word}
+  /* Les trois champs d'identification occupent toute la hauteur restante de la
+     carte et se répartissent : le premier sous le titre, le dernier — le numéro —
+     calé en bas. */
+  .doc-champs{display:flex;flex-direction:column;justify-content:space-between;flex:1}
+  .doc-champs .doc-champ:last-child{margin-bottom:0}
+  /* Cases à cocher, relevées au gabarit : libellé de 12 pt À GAUCHE, case de
+     30 pt à sa droite, et les deux choix EMPILÉS (36 pt entre les lignes de
+     base), pas côte à côte. La case fait 6,9 mm — la boîte visible d'un ☐ de
+     30 pt — et non les 3,4 mm que j'avais mis. */
+  .doc-cases{margin:0}
+  .doc-case{display:flex;align-items:center;font-size:12pt;margin-bottom:2.5mm}
+  .doc-case:last-child{margin-bottom:0}
+  /* Largeur fixe du libellé : « oui » et « non » n'ont pas la même chasse, sans
+     ça les deux cases ne tomberaient pas sur la même verticale. Dans le gabarit
+     elles sont toutes deux à x=78 pour un libellé démarrant à x=54, soit 8,5 mm. */
+  .doc-case-lib{flex:0 0 8.5mm}
+  .doc-carre{width:6.9mm;height:6.9mm;border:.5pt solid var(--doc-texte);
+             display:inline-flex;align-items:center;justify-content:center;
+             font-size:12pt;font-weight:500;flex:0 0 auto}
+  /* Durée : filet court à la suite du libellé, comme dans le gabarit (67 pt). */
+  .doc-duree{display:flex;align-items:baseline;gap:2mm;margin-top:2.5mm}
+  .doc-duree .doc-val{flex:0 0 24mm;min-height:5mm}
+  /* Prescription : les filets naissent d'un dégradé dont la période vaut
+     EXACTEMENT --regle, et le texte a la même hauteur de ligne. */
+  .doc-presc-zone{
+    margin-top:1mm;
+    height:calc(var(--regle) * 6);
+    line-height:var(--regle);
+    background-image:repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent calc(var(--regle) - var(--filet-ep)),
+      var(--doc-filet) calc(var(--regle) - var(--filet-ep)),
+      var(--doc-filet) var(--regle));
+    white-space:pre-wrap;word-break:break-word;overflow:hidden;
+  }
+  /* Pied : logo à gauche, wordmark juste dessous, lieu-date-signature à droite.
+     Le gabarit place le logo à x=36 y=47 en 39×39 pt, et « remplacare » à
+     x=36 y=39 en 7 pt Fields Display SemiBold — donc SOUS le logo, calé sur la
+     même verticale et exactement de la même largeur (39 pt). */
+  /* Ancrés par le BAS et non par le haut : c'est un bloc de coin, il doit rester
+     collé à l'angle quoi qu'il arrive au-dessus de lui. Le retrait de 8 mm au
+     bas répond au retrait de 12,7 mm à gauche, commun à toute la page. */
+  .doc-logo{position:absolute;left:12.7mm;bottom:11mm;width:13.8mm;height:13.8mm}
+  .doc-marque{position:absolute;left:12.7mm;bottom:8mm;width:13.8mm;
+              font-family:var(--title);font-weight:600;font-size:7pt;line-height:1;
+              color:var(--doc-navy);margin:0}
+  .doc-pied{position:absolute;left:113mm;top:248mm;width:84mm}
+  .doc-pied .doc-champ{margin-bottom:3mm}
+  .doc-sig-zone{min-height:20mm;border-bottom:var(--filet-ep) solid var(--doc-filet)}
+  .doc-sig-zone img{display:block;max-width:100%;max-height:19mm}
+
+  /* ─── Impression : seul le document sort, à l'échelle réelle ─── */
+  @page{ size:A4; margin:0 }
+  @media print{
+    /* Le papier a la résolution qu'il faut : les filets retrouvent la finesse
+       du gabarit, que l'écran ne savait pas rendre. */
+    :root{ --filet-ep:.25pt }
+    body{background:#fff}
+    .wrap>h1,.wrap>.sub,.form-col,.doc-shell>h2,.legal,.cta,.no-print{display:none !important}
+    .wrap{max-width:none;padding:0;margin:0}
+    .cols{display:block}
+    .doc-shell{border:0;border-radius:0;padding:0;overflow:visible;background:#fff}
+    .doc{width:210mm;min-height:297mm;margin:0;box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Générateur d'ordonnance</h1>
+  <p class="sub">
+    Remplis les champs, le document se complète sous tes yeux. Rien n'est enregistré :
+    l'ordonnance est fabriquée dans ton navigateur et n'en sort jamais.
+  </p>
+
+  <div class="cols">
+
+    <!-- ═══════════ Formulaire ═══════════ -->
+    <div class="form-col">
+      <div class="card">
+        <h2>Infirmier·ère</h2>
+        <div class="field"><label for="infNom">Prénom &amp; Nom</label>
+          <input type="text" id="infNom" data-cible="vInfNom" autocomplete="off"></div>
+        <div class="field"><label for="infCoord">Coordonnées</label>
+          <input type="text" id="infCoord" data-cible="vInfCoord" autocomplete="off"></div>
+        <div class="field"><label for="infRpps">Numéro RPPS</label>
+          <input type="text" id="infRpps" data-cible="vInfRpps" inputmode="numeric" autocomplete="off"></div>
+      </div>
+
+      <div class="card">
+        <h2>Patient</h2>
+        <div class="field"><label for="patNom">Prénom &amp; Nom</label>
+          <input type="text" id="patNom" data-cible="vPatNom" autocomplete="off"></div>
+        <div class="field"><label for="patNaiss">Date de naissance</label>
+          <input type="text" id="patNaiss" data-cible="vPatNaiss" placeholder="JJ/MM/AAAA" autocomplete="off"></div>
+        <div class="field"><label for="patSs">Numéro de sécurité sociale</label>
+          <input type="text" id="patSs" data-cible="vPatSs" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><label>En rapport avec une ALD</label>
+          <div class="seg" id="segAld">
+            <button type="button" data-v="oui" aria-pressed="false">Oui</button>
+            <button type="button" data-v="non" aria-pressed="false">Non</button>
+          </div></div>
+      </div>
+
+      <div class="card">
+        <h2>Prescription</h2>
+        <div class="field"><label for="presc">Contenu de l'ordonnance</label>
+          <textarea id="presc" placeholder="Une ligne par dispositif."></textarea>
+          <div id="suggestions" class="suggestions" hidden></div></div>
+        <div class="field"><label>Renouvelable</label>
+          <div class="seg" id="segRenouv">
+            <button type="button" data-v="oui" aria-pressed="false">Oui</button>
+            <button type="button" data-v="non" aria-pressed="false">Non</button>
+          </div></div>
+        <div class="field"><label for="duree">Durée</label>
+          <input type="text" id="duree" data-cible="vDuree" autocomplete="off"></div>
+      </div>
+
+      <div class="card">
+        <h2>Lieu, date et signature</h2>
+        <div class="row2">
+          <div class="field"><label for="faitA">Fait à</label>
+            <input type="text" id="faitA" data-cible="vFaitA" autocomplete="off"></div>
+          <div class="field"><label for="faitLe">Le</label>
+            <input type="text" id="faitLe" data-cible="vFaitLe" placeholder="JJ/MM/AAAA" autocomplete="off"></div>
+        </div>
+        <div class="field"><label for="sigPad">Signature</label>
+          <canvas id="sigPad"></canvas>
+          <button type="button" class="btn secondary" id="sigClear" style="margin-top:10px">Effacer la signature</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <button type="button" class="btn" id="btnPrint">Imprimer ou enregistrer en PDF</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Document ═══════════ -->
+    <div>
+      <div class="doc-shell">
+        <h2 class="no-print" style="margin-bottom:14px">Aperçu</h2>
+        <div class="doc" id="doc">
+          <p class="doc-titre">Ordonnance</p>
+
+          <div class="carte c-inf">
+            <p class="doc-bloc-titre">Identification de l'infirmier·ère</p>
+            <div class="doc-champs">
+              <div class="doc-champ"><p class="doc-lib">Prénom &amp; Nom :</p><div class="doc-val" id="vInfNom"></div></div>
+              <div class="doc-champ"><p class="doc-lib">Coordonnées :</p><div class="doc-val" id="vInfCoord"></div></div>
+              <div class="doc-champ"><p class="doc-lib">Numéro RPPS :</p><div class="doc-val" id="vInfRpps"></div></div>
+            </div>
+          </div>
+
+          <div class="carte c-pat">
+            <p class="doc-bloc-titre">Identification du patient</p>
+            <div class="doc-champs">
+              <div class="doc-champ"><p class="doc-lib">Prénom &amp; Nom :</p><div class="doc-val" id="vPatNom"></div></div>
+              <div class="doc-champ"><p class="doc-lib">Date de naissance :</p><div class="doc-val" id="vPatNaiss"></div></div>
+              <div class="doc-champ"><p class="doc-lib">Numéro SS :</p><div class="doc-val" id="vPatSs"></div></div>
+            </div>
+          </div>
+
+          <div class="carte c-ald">
+            <p class="doc-bloc-titre">En rapport avec ALD</p>
+            <div class="doc-cases">
+              <span class="doc-case"><span class="doc-case-lib">oui</span><span class="doc-carre" id="vAldOui"></span></span>
+              <span class="doc-case"><span class="doc-case-lib">non</span><span class="doc-carre" id="vAldNon"></span></span>
+            </div>
+          </div>
+
+          <div class="carte c-ren">
+            <p class="doc-bloc-titre">Renouvelable</p>
+            <div class="doc-cases">
+              <span class="doc-case"><span class="doc-case-lib">oui</span><span class="doc-carre" id="vRenOui"></span></span>
+              <span class="doc-case"><span class="doc-case-lib">non</span><span class="doc-carre" id="vRenNon"></span></span>
+            </div>
+            <div class="doc-duree">
+              <span class="doc-lib" style="margin:0">Durée :</span>
+              <div class="doc-val" id="vDuree"></div>
+            </div>
+          </div>
+
+          <div class="carte c-presc">
+            <p class="doc-bloc-titre">Prescription</p>
+            <div class="doc-presc-zone" id="vPresc"></div>
+          </div>
+
+          <img class="doc-logo" src="images/logo-ordonnance.png" alt="">
+          <p class="doc-marque">remplacare</p>
+
+          <div class="doc-pied">
+            <div class="doc-champ"><p class="doc-lib">Fait à :</p><div class="doc-val" id="vFaitA"></div></div>
+            <div class="doc-champ"><p class="doc-lib">le :</p><div class="doc-val" id="vFaitLe"></div></div>
+            <p class="doc-lib">Signature :</p>
+            <div class="doc-sig-zone" id="vSig"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cta">
+        <p style="margin:0 0 4px;font-weight:500">Tu es infirmier·ère remplaçant·e ?</p>
+        <p style="margin:0;font-size:14px;color:var(--text-2)">
+          RemplaCare suit ton calendrier, ton chiffre d'affaires et ce que tu dois provisionner.
+          <a href="/beta">Découvrir</a>
+        </p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════════════
+   Le document est du HTML : chaque champ du formulaire alimente une zone du
+   document par son attribut `data-cible`. Pas de coordonnées, pas de calibrage —
+   l'alignement découle de la mise en page, il ne se règle pas.
+
+   C'est ce qui corrige le défaut de la version précédente : le gabarit PDF
+   portait des lignes réglées dessinées en vectoriel, invisibles dans le texte
+   extrait, et le texte incrusté ne pouvait pas tomber dessus. Ici les lignes et
+   le texte partagent la variable --regle : ils sont solidaires.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Items proposés au menu et à la saisie assistée.
+   ─────────────────────────────────────────────────────────────────────────────
+   RÈGLE DE FOND : un IDEL prescrit des DISPOSITIFS MÉDICAUX, jamais des actes.
+   « Compresses stériles 10 x 10 cm » est un dispositif ; « pansement simple,
+   1 par jour pendant 15 jours » décrit un acte de soin et n'a rien à faire ici.
+
+   ⚠️ CONTENU PROVISOIRE — à remplacer par la banque validée par une IDEL.
+   Rien ici ne vaut référence médicale. */
+const ITEMS = [
+  'Compresses stériles 10 x 10 cm',
+  'Compresses stériles 7,5 x 7,5 cm',
+  'Pansement hydrocellulaire 10 x 10 cm',
+  'Pansement hydrocolloïde',
+  'Tulle gras',
+  'Sérum physiologique 0,9 %, dosettes de 5 mL',
+  'Sparadrap hypoallergénique',
+  'Bande de crêpe 10 cm',
+  'Bande de contention',
+  'Set de pansement stérile',
+  'Gants non stériles à usage unique',
+  'Filet tubulaire de maintien',
+]
+
+const $ = (id) => document.getElementById(id)
+
+/* ─── Liaison formulaire → document ─────────────────────────────────────── */
+for (const input of document.querySelectorAll('[data-cible]')) {
+  input.addEventListener('input', () => { $(input.dataset.cible).textContent = input.value })
+}
+
+$('presc').addEventListener('input', e => { $('vPresc').textContent = e.target.value; suggerer() })
+$('presc').addEventListener('blur', () => setTimeout(() => { $('suggestions').hidden = true }, 200))
+
+/* ─── Suggestions à la frappe ───────────────────────────────────────────────
+   Seule porte d'entrée des dispositifs : on écrit, la liste se propose. Il n'y a
+   plus de menu déroulant — un catalogue de plusieurs centaines de références
+   serait de toute façon illisible déplié, alors qu'il se laisse filtrer en trois
+   lettres.
+   Elles portent sur la LIGNE EN COURS, pas sur tout le champ : on prescrit ligne
+   par ligne, chercher sur le texte entier ne proposerait plus rien de sensé dès
+   la deuxième entrée. */
+const sansAccent = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+
+function ligneCourante(ta) {
+  const avant = ta.value.slice(0, ta.selectionStart)
+  const debut = avant.lastIndexOf('\n') + 1
+  return { debut, texte: ta.value.slice(debut, ta.selectionStart) }
+}
+
+function suggerer() {
+  const ta = $('presc'), boite = $('suggestions')
+  const q = sansAccent(ligneCourante(ta).texte.trim())
+  boite.innerHTML = ''
+  if (q.length < 2) { boite.hidden = true; return }
+
+  const trouves = ITEMS.filter(i => sansAccent(i).includes(q)).slice(0, 5)
+  if (!trouves.length) { boite.hidden = true; return }
+
+  for (const item of trouves) {
+    const b = document.createElement('button')
+    b.type = 'button'; b.textContent = item
+    b.addEventListener('click', () => {
+      const { debut } = ligneCourante(ta)
+      const fl = ta.value.indexOf('\n', debut)
+      const fin = fl === -1 ? ta.value.length : fl
+      ta.value = ta.value.slice(0, debut) + item + ta.value.slice(fin)
+      $('vPresc').textContent = ta.value
+      boite.hidden = true; boite.innerHTML = ''
+      ta.focus()
+      const pos = debut + item.length
+      ta.setSelectionRange(pos, pos)
+    })
+    boite.appendChild(b)
+  }
+  boite.hidden = false
+}
+
+/* ─── Cases à cocher ────────────────────────────────────────────────────── */
+function segment(idSeg, idOui, idNon) {
+  const seg = $(idSeg)
+  let valeur = ''
+  seg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return
+    valeur = valeur === b.dataset.v ? '' : b.dataset.v      // re-cliquer décoche
+    for (const x of seg.querySelectorAll('button')) x.setAttribute('aria-pressed', String(x.dataset.v === valeur))
+    $(idOui).textContent = valeur === 'oui' ? '✕' : ''
+    $(idNon).textContent = valeur === 'non' ? '✕' : ''
+  })
+}
+segment('segAld', 'vAldOui', 'vAldNon')
+segment('segRenouv', 'vRenOui', 'vRenNon')
+
+/* ─── Signature manuscrite ──────────────────────────────────────────────── */
+;(function signature() {
+  const cv = $('sigPad'), ctx = cv.getContext('2d')
+  let dessine = false, vide = true
+
+  function dimensionner() {
+    const r = window.devicePixelRatio || 1
+    cv.width = cv.clientWidth * r; cv.height = cv.clientHeight * r
+    ctx.scale(r, r)
+    ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1C324A'
+  }
+  requestAnimationFrame(dimensionner)
+
+  const pos = e => {
+    const r = cv.getBoundingClientRect(), p = e.touches ? e.touches[0] : e
+    return { x: p.clientX - r.left, y: p.clientY - r.top }
+  }
+  const debut = e => { e.preventDefault(); dessine = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y) }
+  const trace = e => { if (!dessine) return; e.preventDefault(); const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); vide = false }
+  const fin = () => {
+    if (!dessine) return
+    dessine = false
+    const cible = $('vSig')
+    cible.innerHTML = ''
+    if (!vide) {
+      const img = document.createElement('img')
+      img.src = cv.toDataURL('image/png')
+      cible.appendChild(img)
+    }
+  }
+  for (const [ev, fn] of [['mousedown',debut],['mousemove',trace],['mouseup',fin],['mouseleave',fin],
+                          ['touchstart',debut],['touchmove',trace],['touchend',fin]])
+    cv.addEventListener(ev, fn, { passive: false })
+
+  $('sigClear').addEventListener('click', () => {
+    ctx.clearRect(0, 0, cv.width, cv.height); vide = true; $('vSig').innerHTML = ''
+  })
+})()
+
+/* ─── Sortie ────────────────────────────────────────────────────────────────
+   L'impression navigateur produit le PDF : @page fixe le A4 et @media print ne
+   laisse sortir que le document. Rien n'est fabriqué en mémoire, donc rien à
+   nettoyer — et aucune bibliothèque à charger. */
+$('btnPrint').addEventListener('click', () => window.print())
+
+/* ─── Mise à l'échelle de l'aperçu ──────────────────────────────────────────
+   Le document fait 210 mm de large en dur, pour que l'écran et le papier disent
+   la même chose. Sur un écran étroit on le réduit visuellement, sans jamais
+   toucher à ses dimensions réelles. */
+function ajusterApercu() {
+  const doc = $('doc'), shell = doc.parentElement
+  const dispo = shell.clientWidth - 32
+  const reel = doc.offsetWidth
+  const k = Math.min(1, dispo / reel)
+  doc.style.transform = k < 1 ? `scale(${k})` : 'none'
+  shell.style.height = k < 1 ? (doc.offsetHeight * k + 32) + 'px' : 'auto'
+}
+window.addEventListener('resize', ajusterApercu)
+window.addEventListener('load', ajusterApercu)
+ajusterApercu()
+</script>
+</body>
+</html>

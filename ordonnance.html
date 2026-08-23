@@ -76,6 +76,15 @@
   .suggestions button{text-align:left;padding:10px 12px;font-family:var(--body);font-size:14px;
     color:var(--text);background:var(--sage-soft);border:1px solid var(--sage);
     border-radius:var(--radius-s);cursor:pointer}
+  .suggestions button[aria-selected=true]{background:#CFE3DD;border-color:var(--navy)}
+  /* Lignes de prescription : une par dispositif, la dernière est celle qu'on
+     saisit. Les précédentes restent modifiables — rien n'est figé pour de bon. */
+  .ligne{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .ligne input{flex:1}
+  .ligne-sup{flex:0 0 auto;width:34px;height:34px;border-radius:50%;cursor:pointer;
+    border:1px solid var(--border);background:var(--surface);color:var(--text-2);
+    font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .ligne-sup:hover{border-color:var(--navy);color:var(--navy)}
   #sigPad{width:100%;height:140px;background:var(--bg);border:1px dashed var(--border);
           border-radius:var(--radius-m);touch-action:none;display:block}
   /* Mentions légales : l'encadré jaune est retiré, le texte reste. Il n'est pas
@@ -174,6 +183,39 @@
       var(--doc-filet) var(--regle));
     white-space:pre-wrap;word-break:break-word;overflow:hidden;
   }
+  /* ── Mode étendu ────────────────────────────────────────────────────────────
+     Au-delà de 6 lignes, la carte de prescription déborderait. La page bascule
+     alors : la carte rouge descend jusqu'en bas, le bloc lieu-date-signature
+     passe à gauche sous « Renouvelable », et le logo se replie dans l'angle.
+     C'est un vrai changement de gabarit, pas un rétrécissement du texte — le
+     document reste lisible quel que soit le nombre de dispositifs. */
+  .doc.etendu .c-presc{ height:135.4mm }          /* jusqu'à 12,7 mm du bord bas */
+  .doc.etendu .doc-presc-zone{ height:calc(var(--regle) * 10) }
+  /* 246 mm : la carte « Renouvelable » finit à 242, on laisse 4 mm de respiration
+     plutôt que de coller les deux blocs. */
+  .doc.etendu .doc-pied{
+    left:12.7mm; top:246mm; width:52.2mm;
+  }
+  .doc.etendu .doc-sig-zone{ min-height:12mm }
+  .doc.etendu .doc-pied .doc-champ{ margin-bottom:2mm }
+  /* Le logo se réduit et gagne l'angle : c'est la seule place qui reste une fois
+     le pied descendu sur la colonne de gauche. */
+  .doc.etendu .doc-logo{ width:7mm; height:7mm; left:8mm; bottom:7.5mm }
+  .doc.etendu .doc-marque{ width:auto; left:8mm; bottom:4mm; font-size:5.5pt }
+
+  /* ── Mode plein ─────────────────────────────────────────────────────────────
+     À 10 lignes, le bloc lieu-date-signature descend jusqu'au bas de la colonne
+     de gauche : le logo n'y a plus sa place. Il passe donc dans l'angle bas
+     DROIT, sous la carte de prescription — la bande de 12,7 mm qui la sépare du
+     bord de page est le dernier espace libre. Le wordmark se met à sa gauche,
+     sur la même ligne, faute de hauteur pour tenir dessous. */
+  .doc.plein .doc-logo{
+    left:auto; right:8mm; bottom:4mm; width:7mm; height:7mm;
+  }
+  .doc.plein .doc-marque{
+    left:auto; right:17mm; bottom:6mm; width:auto; text-align:right; font-size:5.5pt;
+  }
+
   /* Pied : logo à gauche, wordmark juste dessous, lieu-date-signature à droite.
      Le gabarit place le logo à x=36 y=47 en 39×39 pt, et « remplacare » à
      x=36 y=39 en 7 pt Fields Display SemiBold — donc SOUS le logo, calé sur la
@@ -244,9 +286,11 @@
 
       <div class="card">
         <h2>Prescription</h2>
-        <div class="field"><label for="presc">Contenu de l'ordonnance</label>
-          <textarea id="presc" placeholder="Une ligne par dispositif."></textarea>
-          <div id="suggestions" class="suggestions" hidden></div></div>
+        <div class="field"><label>Contenu de l'ordonnance</label>
+          <!-- Une ligne = un dispositif. Chaque validation fige la ligne et en
+               ouvre une nouvelle en dessous, comme on remplit une ordonnance
+               papier. Le bloc est reconstruit par le script. -->
+          <div id="lignes"></div></div>
         <div class="field"><label>Renouvelable</label>
           <div class="seg" id="segRenouv">
             <button type="button" data-v="oui" aria-pressed="false">Oui</button>
@@ -361,82 +405,274 @@
    le texte partagent la variable --regle : ils sont solidaires.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Items proposés au menu et à la saisie assistée.
+/* Dispositifs proposés à la saisie — chargés depuis dispositifs.json.
    ─────────────────────────────────────────────────────────────────────────────
-   RÈGLE DE FOND : un IDEL prescrit des DISPOSITIFS MÉDICAUX, jamais des actes.
+   Le fichier est SÉPARÉ pour pouvoir être enrichi sans toucher au code : c'est
+   un tableau de chaînes, une par ligne. Trois strates y cohabitent — les
+   basiques du quotidien, les familles génériques, puis les marques.
+
+   Les marques figurent sur décision explicite de Sam : la nomenclature veut du
+   générique, la pratique réelle des IDEL nomme les produits.
+
+   RÈGLE DE FOND : un IDEL prescrit des DISPOSITIFS, jamais des actes.
    « Compresses stériles 10 x 10 cm » est un dispositif ; « pansement simple,
    1 par jour pendant 15 jours » décrit un acte de soin et n'a rien à faire ici.
 
-   ⚠️ CONTENU PROVISOIRE — à remplacer par la banque validée par une IDEL.
-   Rien ici ne vaut référence médicale. */
-const ITEMS = [
-  'Compresses stériles 10 x 10 cm',
-  'Compresses stériles 7,5 x 7,5 cm',
-  'Pansement hydrocellulaire 10 x 10 cm',
-  'Pansement hydrocolloïde',
-  'Tulle gras',
-  'Sérum physiologique 0,9 %, dosettes de 5 mL',
-  'Sparadrap hypoallergénique',
-  'Bande de crêpe 10 cm',
-  'Bande de contention',
-  'Set de pansement stérile',
-  'Gants non stériles à usage unique',
-  'Filet tubulaire de maintien',
-]
+   Sources : basiques et génériques rédigés à la main ; marques extraites de la
+   LPP officielle (ameli.fr). Aucune de ces entrées ne vaut avis médical — le
+   prescripteur reste seul responsable de ce qu'il inscrit et signe. */
+let ITEMS = []
+let SYNONYMES = {}
 
 const $ = (id) => document.getElementById(id)
+
+fetch('dispositifs.json')
+  .then((r) => r.ok ? r.json() : Promise.reject(new Error(r.status)))
+  .then((d) => { ITEMS = d.items || []; SYNONYMES = d.synonymes || {} })
+  .catch(() => {
+    // Liste indisponible : la saisie libre reste entièrement fonctionnelle, seules
+    // les suggestions disparaissent. On ne bloque pas la page pour autant.
+    ITEMS = []
+  })
 
 /* ─── Liaison formulaire → document ─────────────────────────────────────── */
 for (const input of document.querySelectorAll('[data-cible]')) {
   input.addEventListener('input', () => { $(input.dataset.cible).textContent = input.value })
 }
 
-$('presc').addEventListener('input', e => { $('vPresc').textContent = e.target.value; suggerer() })
-$('presc').addEventListener('blur', () => setTimeout(() => { $('suggestions').hidden = true }, 200))
+/* ══════════════════════════════════════════════════════════════════════════
+   PRESCRIPTION — une ligne par dispositif
+   ══════════════════════════════════════════════════════════════════════════
+   Chaque ligne est un champ autonome. Valider — par clic sur une suggestion ou
+   par Entrée — fige la ligne et en ouvre une nouvelle dessous, comme on remplit
+   une ordonnance papier. Les lignes précédentes restent modifiables.
 
-/* ─── Suggestions à la frappe ───────────────────────────────────────────────
-   Seule porte d'entrée des dispositifs : on écrit, la liste se propose. Il n'y a
-   plus de menu déroulant — un catalogue de plusieurs centaines de références
-   serait de toute façon illisible déplié, alors qu'il se laisse filtrer en trois
-   lettres.
-   Elles portent sur la LIGNE EN COURS, pas sur tout le champ : on prescrit ligne
-   par ligne, chercher sur le texte entier ne proposerait plus rien de sensé dès
-   la deuxième entrée. */
+   La RECHERCHE est multi-mots : « mepilex sacrum » trouve « MEPILEX BORDER
+   SACRUM ». Chercher la chaîne entière d'un bloc échouait dès que les mots
+   n'étaient pas contigus dans le libellé — c'est le défaut que ça corrige.
+   ══════════════════════════════════════════════════════════════════════════ */
 const sansAccent = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-function ligneCourante(ta) {
-  const avant = ta.value.slice(0, ta.selectionStart)
-  const debut = avant.lastIndexOf('\n') + 1
-  return { debut, texte: ta.value.slice(debut, ta.selectionStart) }
+/**
+ * Recherche en deux temps.
+ *
+ * 1. SYNONYMES CLINIQUES. On tape ce qu'on cherche à faire — « mèche »,
+ *    « escarre », « plaie qui suinte » — pas le libellé de la catégorie. La
+ *    table de synonymes fait le pont et propose des CATÉGORIES, jamais des
+ *    marques : sur un terme clinique, orienter vers un produit nommé serait
+ *    une recommandation, ce que cet outil n'a pas à faire.
+ *
+ * 2. CORRESPONDANCE LITTÉRALE, multi-mots : tous les mots doivent figurer dans
+ *    le libellé, dans n'importe quel ordre. « mepilex sacrum » trouve donc
+ *    « MEPILEX BORDER SACRUM », ce qu'une recherche d'un seul bloc ratait.
+ *
+ * Les résultats des synonymes passent devant, sans doublonner les littéraux.
+ */
+function chercher(q) {
+  const requete = sansAccent(q)
+  const mots = requete.split(/\s+/).filter(Boolean)
+  if (!mots.length) return []
+
+  // ── 1. Synonymes ──
+  // Une clé est retenue si la requête la contient, ou l'inverse : « meche » et
+  // « meche alginate » activent tous deux l'entrée « meche ».
+  const parSynonyme = []
+  for (const [cle, cibles] of Object.entries(SYNONYMES)) {
+    const k = sansAccent(cle)
+    if (requete.includes(k) || (k.includes(requete) && requete.length >= 3)) {
+      for (const c of cibles) if (!parSynonyme.includes(c)) parSynonyme.push(c)
+    }
+  }
+
+  // ── 2. Littéral ──
+  const litteraux = ITEMS
+    .map((item) => {
+      const norm = sansAccent(item)
+      if (!mots.every((m) => norm.includes(m))) return null
+      let score = 0
+      if (norm.startsWith(mots[0])) score -= 100          // commence par la requête
+      score += norm.length / 100                          // le plus court d'abord
+      return { item, score }
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.score - b.score)
+    .map((r) => r.item)
+
+  const vus = new Set()
+  const sortie = []
+  for (const x of [...parSynonyme, ...litteraux]) {
+    if (vus.has(x)) continue
+    vus.add(x)
+    sortie.push(x)
+    if (sortie.length >= 7) break
+  }
+  return sortie
 }
 
-function suggerer() {
-  const ta = $('presc'), boite = $('suggestions')
-  const q = sansAccent(ligneCourante(ta).texte.trim())
+const lignes = []            // valeurs saisies, dans l'ordre
+let indexActif = -1          // ligne dont les suggestions sont ouvertes
+let indexSurvol = -1         // suggestion sélectionnée au clavier
+
+/* Le document a trois gabarits, déclenchés par le nombre de lignes écrites :
+   ≤ 6   normal — carte de prescription courte, pied à droite, logo à gauche
+   7-9   étendu — carte jusqu'en bas, pied à gauche, logo replié dans l'angle
+   ≥ 10  plein  — le pied occupe toute la colonne gauche, le logo passe à droite */
+const SEUIL_ETENDU = 6
+const SEUIL_PLEIN = 10
+
+function majDocument() {
+  const remplies = lignes.filter((l) => l.trim())
+  $('vPresc').textContent = remplies.join('\n')
+  // Le basculement se joue sur le NOMBRE DE LIGNES ÉCRITES, pas sur le nombre de
+  // champs : une ligne vide en attente de saisie ne doit pas déformer la page.
+  const doc = $('doc')
+  doc.classList.toggle('etendu', remplies.length > SEUIL_ETENDU)
+  doc.classList.toggle('plein', remplies.length >= SEUIL_PLEIN)
+  ajusterApercu()
+}
+
+function fermerSuggestions() {
+  const b = $('suggestions')
+  if (b) { b.hidden = true; b.innerHTML = '' }
+  indexSurvol = -1
+}
+
+/** Reconstruit les champs. `focusIdx` reçoit le curseur après rendu. */
+function rendreLignes(focusIdx) {
+  const hote = $('lignes')
+  hote.innerHTML = ''
+
+  lignes.forEach((valeur, i) => {
+    const rangee = document.createElement('div')
+    rangee.className = 'ligne'
+
+    const champ = document.createElement('input')
+    champ.type = 'text'
+    champ.value = valeur
+    champ.autocomplete = 'off'
+    champ.placeholder = i === lignes.length - 1 ? 'Dispositif…' : ''
+
+    champ.addEventListener('input', () => {
+      lignes[i] = champ.value
+      indexActif = i
+      majDocument()
+      suggerer(champ, i)
+    })
+    champ.addEventListener('focus', () => { indexActif = i; suggerer(champ, i) })
+    champ.addEventListener('blur', () => setTimeout(fermerSuggestions, 180))
+    champ.addEventListener('keydown', (e) => onTouche(e, champ, i))
+
+    rangee.appendChild(champ)
+
+    // Bouton de suppression, sauf sur la dernière ligne — qui est le champ vierge.
+    if (lignes.length > 1 && i < lignes.length - 1) {
+      const sup = document.createElement('button')
+      sup.type = 'button'
+      sup.className = 'ligne-sup'
+      sup.textContent = '×'
+      sup.setAttribute('aria-label', 'Supprimer cette ligne')
+      sup.addEventListener('click', () => {
+        lignes.splice(i, 1)
+        majDocument()
+        rendreLignes(Math.max(0, i - 1))
+      })
+      rangee.appendChild(sup)
+    }
+
+    hote.appendChild(rangee)
+  })
+
+  const boite = document.createElement('div')
+  boite.className = 'suggestions'
+  boite.id = 'suggestions'
+  boite.hidden = true
+  hote.appendChild(boite)
+
+  if (focusIdx != null) {
+    const champs = hote.querySelectorAll('input')
+    const cible = champs[Math.min(focusIdx, champs.length - 1)]
+    if (cible) { cible.focus(); cible.setSelectionRange(cible.value.length, cible.value.length) }
+  }
+}
+
+/** Fige la ligne `i` et en ouvre une nouvelle juste dessous. */
+function validerLigne(i, valeur) {
+  lignes[i] = valeur
+  fermerSuggestions()
+  // Une ligne vierge n'est ajoutée que s'il n'y en a pas déjà une en attente,
+  // sinon valider deux fois de suite empilerait des champs vides.
+  if (i === lignes.length - 1 || lignes[lignes.length - 1].trim()) {
+    lignes.splice(i + 1, 0, '')
+    majDocument()
+    rendreLignes(i + 1)
+  } else {
+    majDocument()
+    rendreLignes(lignes.length - 1)
+  }
+}
+
+function onTouche(e, champ, i) {
+  const boite = $('suggestions')
+  const props = boite && !boite.hidden ? [...boite.querySelectorAll('button')] : []
+
+  if (e.key === 'ArrowDown' && props.length) {
+    e.preventDefault(); indexSurvol = (indexSurvol + 1) % props.length; peindreSurvol(props); return
+  }
+  if (e.key === 'ArrowUp' && props.length) {
+    e.preventDefault(); indexSurvol = (indexSurvol - 1 + props.length) % props.length; peindreSurvol(props); return
+  }
+  if (e.key === 'Escape') { fermerSuggestions(); return }
+
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    // Une suggestion est sélectionnée au clavier : c'est elle qu'on retient.
+    if (indexSurvol >= 0 && props[indexSurvol]) { validerLigne(i, props[indexSurvol].textContent); return }
+    if (champ.value.trim()) validerLigne(i, champ.value.trim())
+    return
+  }
+
+  // Retour arrière sur un champ vide : on remonte à la ligne précédente plutôt
+  // que de laisser des trous dans la liste.
+  if (e.key === 'Backspace' && !champ.value && lignes.length > 1) {
+    e.preventDefault()
+    lignes.splice(i, 1)
+    majDocument()
+    rendreLignes(Math.max(0, i - 1))
+  }
+}
+
+function peindreSurvol(props) {
+  props.forEach((b, k) => b.setAttribute('aria-selected', String(k === indexSurvol)))
+}
+
+function suggerer(champ, i) {
+  const boite = $('suggestions')
+  if (!boite) return
+  const q = champ.value.trim()
   boite.innerHTML = ''
+  indexSurvol = -1
   if (q.length < 2) { boite.hidden = true; return }
 
-  const trouves = ITEMS.filter(i => sansAccent(i).includes(q)).slice(0, 5)
+  const trouves = chercher(q)
   if (!trouves.length) { boite.hidden = true; return }
 
   for (const item of trouves) {
     const b = document.createElement('button')
-    b.type = 'button'; b.textContent = item
-    b.addEventListener('click', () => {
-      const { debut } = ligneCourante(ta)
-      const fl = ta.value.indexOf('\n', debut)
-      const fin = fl === -1 ? ta.value.length : fl
-      ta.value = ta.value.slice(0, debut) + item + ta.value.slice(fin)
-      $('vPresc').textContent = ta.value
-      boite.hidden = true; boite.innerHTML = ''
-      ta.focus()
-      const pos = debut + item.length
-      ta.setSelectionRange(pos, pos)
-    })
+    b.type = 'button'
+    b.textContent = item
+    // mousedown, pas click : le blur du champ se déclenche avant le click et
+    // refermerait la liste sous le curseur.
+    b.addEventListener('mousedown', (e) => { e.preventDefault(); validerLigne(i, item) })
     boite.appendChild(b)
   }
+  // La boîte se place sous la ligne active.
+  const rangee = champ.closest('.ligne')
+  if (rangee && rangee.nextSibling !== boite) rangee.after(boite)
   boite.hidden = false
 }
+
+lignes.push('')
+rendreLignes(null)
 
 /* ─── Cases à cocher ────────────────────────────────────────────────────── */
 function segment(idSeg, idOui, idNon) {

@@ -455,6 +455,32 @@ for (const input of document.querySelectorAll('[data-cible]')) {
   })
 }
 
+/* ── DATE MASK ─────────────────────────────────────────────────────────────
+   Insère les « / » automatiquement à la frappe : JJ/MM/AAAA. On ne reformate
+   proprement que quand l'utilisateur AJOUTE des caractères — sur une suppression
+   (Backspace), on laisse la valeur telle quelle, sinon le « / » se réinsère
+   aussitôt et le champ devient impossible à effacer. */
+function masqueDate(input) {
+  let ancienne = input.value
+  input.addEventListener('input', () => {
+    const suppression = input.value.length < ancienne.length
+    if (!suppression) {
+      const chiffres = input.value.replace(/\D/g, '').slice(0, 8)
+      let out = chiffres
+      if (chiffres.length > 4)      out = chiffres.slice(0,2) + '/' + chiffres.slice(2,4) + '/' + chiffres.slice(4)
+      else if (chiffres.length > 2) out = chiffres.slice(0,2) + '/' + chiffres.slice(2)
+      input.value = out
+    }
+    ancienne = input.value
+    // Répercute sur le document (le binding générique a déjà tourné avec
+    // l'ancienne valeur brute, on le recale ici).
+    document.querySelectorAll(`#${input.dataset.cible}`).forEach(el => {
+      el.textContent = input.value
+    })
+  })
+}
+;['patNaiss', 'faitLe'].forEach(id => { const el = $(id); if (el) masqueDate(el) })
+
 /* ── SUGGESTION ENGINE ────────────────────────────────────────────────── */
 let ITEMS = []
 let SYNONYMES = {}

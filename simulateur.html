@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Simulateur de cotisations — infirmier libéral remplaçant</title>
-<meta name="description" content="Estimation des cotisations URSSAF et CARPIMKO et du revenu net d'un infirmier libéral remplaçant, à partir du chiffre d'affaires journalier, mensuel ou annuel. Calculs fournis par le moteur officiel URSSAF.">
+<meta name="description" content="Estime tes cotisations URSSAF et CARPIMKO et ton net d'infirmier libéral remplaçant, à partir de ton CA journalier, mensuel ou annuel. Calculs fournis par le moteur officiel URSSAF.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
@@ -99,20 +99,20 @@
     <a class="brand" href="/">rempl<em>a</em> care</a>
     <nav class="nav-links" aria-label="Navigation principale">
       <a class="link" href="/">Accueil</a>
-      <a class="nav-cta" href="#telecharger" data-download>Télécharger l'application</a>
+      <a class="nav-cta" href="#telecharger" data-download>Télécharger l'app</a>
     </nav>
   </div>
 </header>
 
 <div class="wrap">
 
-  <h1>Estimer son revenu net</h1>
-  <p class="sub">Estimez vos cotisations URSSAF et CARPIMKO d'infirmier libéral remplaçant,
-     et le montant à mettre de côté chaque mois. Gratuit, sans inscription.</p>
+  <h1>Combien te reste-t-il vraiment ?</h1>
+  <p class="sub">Estime tes cotisations URSSAF et CARPIMKO d'infirmier libéral remplaçant,
+     et ce qu'il faut mettre de côté chaque mois. Gratuit, sans inscription.</p>
 
   <div class="card">
     <div class="field">
-      <label id="lbl-periode">Votre chiffre d'affaires est&nbsp;:</label>
+      <label id="lbl-periode">Ton chiffre d'affaires est&nbsp;:</label>
       <div class="seg" role="group" aria-labelledby="lbl-periode">
         <button type="button" data-p="jour" aria-pressed="true">Journalier</button>
         <button type="button" data-p="mois" aria-pressed="false">Mensuel</button>
@@ -123,8 +123,8 @@
     <div class="field">
       <label for="ca" id="ca-label">Chiffre d'affaires par jour travaillé</label>
       <input type="number" id="ca" min="0" step="10" inputmode="numeric" placeholder="350">
-      <p class="hint">Montant réellement encaissé, <b>rétrocession déduite</b>.
-         C'est la base de calcul des cotisations.</p>
+      <p class="hint">Ce que tu encaisses réellement, <b>rétrocession déjà déduite</b> —
+         c'est la base sur laquelle tu cotises.</p>
     </div>
 
     <div class="field" id="f-jours">
@@ -138,7 +138,7 @@
     </div>
 
     <div class="field">
-      <label for="regime">Régime fiscal</label>
+      <label for="regime">Ton régime fiscal</label>
       <select id="regime">
         <option value="micro_bnc">Micro-BNC (abattement forfaitaire)</option>
         <option value="reel">Frais réels (déclaration contrôlée)</option>
@@ -159,7 +159,7 @@
 
   <div id="resultats" class="hidden">
     <div class="hero">
-      <p class="over">Revenu net mensuel</p>
+      <p class="over">Il te reste, par mois</p>
       <p class="amount" id="r-net-mois">—</p>
       <p class="note">après cotisations, avant impôt sur le revenu</p>
     </div>
@@ -184,7 +184,7 @@
     </div>
 
     <div class="card" style="margin-top:20px">
-      <h2>Détail des cotisations retraite</h2>
+      <h2>Détail de tes cotisations retraite</h2>
       <table>
         <tr><td>Retraite de base (CNAVPL)</td><td id="d-base">—</td></tr>
         <tr><td>Retraite complémentaire (CARPIMKO)</td><td id="d-comp">—</td></tr>
@@ -201,10 +201,10 @@
       <li>Ce simulateur s'adresse aux <b>auxiliaires médicaux en BNC</b>, dont les infirmiers
           libéraux remplaçants. Il ne couvre pas les sociétés d'exercice libéral (SELARL, SELAS).</li>
       <li>Il ne calcule pas l'<b>impôt sur le revenu</b> : le net affiché est un net avant impôt.</li>
-      <li>Il ne calcule pas la <b>cotisation ordinale</b> : elle est à ajouter aux charges.</li>
+      <li>Il ne calcule pas la <b>cotisation ordinale</b> — à ajouter dans tes charges.</li>
       <li>Il ne gère pas le cas d'un <b>changement de régime fiscal en cours d'année</b>.</li>
       <li>Les montants sont <b>indicatifs</b>. Ils ne se substituent pas aux décomptes réels de
-          l'URSSAF, de la CARPIMKO ou de l'administration fiscale, ni à l'avis d'un
+          l'URSSAF, de la CARPIMKO ou de l'administration fiscale, ni à l'avis de ton
           expert-comptable.</li>
     </ul>
     <p style="margin-bottom:0">Calculs fournis par le moteur officiel URSSAF
@@ -298,11 +298,11 @@
 
   // ── Appel ──────────────────────────────────────────────────────────────────
   var MESSAGES = {
-    PARAMS_INVALIDES: "Les montants saisis ne permettent pas le calcul. Vérifiez le chiffre d'affaires et les charges.",
-    API_INDISPONIBLE: "Le service de calcul URSSAF est momentanément indisponible. Réessayez plus tard.",
-    TIMEOUT:          "Le calcul a mis trop de temps. Réessayez dans un instant.",
+    PARAMS_INVALIDES: "Les montants saisis ne permettent pas le calcul. Vérifie ton CA et tes charges.",
+    API_INDISPONIBLE: "Le service de calcul URSSAF est momentanément indisponible. Réessaie plus tard.",
+    TIMEOUT:          "Le calcul a mis trop de temps. Réessaie dans un instant.",
     REGLE_INCONNUE:   "Le calcul est temporairement indisponible : les règles URSSAF ont changé.",
-    RESEAU:           "Impossible de joindre le service de calcul. Vérifiez votre connexion."
+    RESEAU:           "Impossible de joindre le service de calcul. Vérifie ta connexion."
   };
 
   function erreur(code){

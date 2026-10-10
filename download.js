@@ -39,6 +39,9 @@
   .dl-ios:hover{background:#15263A}
   .dl-android{background:#4E7A67;color:#fff}
   .dl-android:hover{background:#3F6354}
+  .dl-card .dl-help{display:none;margin:14px 0 0;font-size:13px;line-height:1.5;color:#22303D;text-align:left;
+    background:#fff;border-radius:12px;padding:12px 14px}
+  .dl-card .dl-help.show{display:block}
   @media (prefers-reduced-motion: reduce){
     .dl-overlay,.dl-card{transition:none}
   }`;
@@ -60,11 +63,16 @@
       '<p>Choisis ton téléphone</p>' +
       '<a class="dl-btn dl-ios" href="' + APP_STORE + '" target="_blank" rel="noopener">' + apple + 'iOS</a>' +
       '<a class="dl-btn dl-android" href="' + APK + '">' + android + 'Android</a>' +
+      '<p class="dl-help" id="dlHelp" role="status">Le téléchargement démarre. Ouvre ensuite le fichier Remplacare.apk depuis tes téléchargements. ' +
+        'Si Android bloque l\'installation, autorise « Installer des applis inconnues » pour ton navigateur, puis rouvre le fichier.</p>' +
     '</div>';
   document.body.appendChild(overlay);
 
   const card = overlay.querySelector('.dl-card');
+  const help = overlay.querySelector('#dlHelp');
   let lastFocus = null;
+
+  overlay.querySelector('.dl-android').addEventListener('click', ()=>help.classList.add('show'));
 
   function open(){
     lastFocus = document.activeElement;
@@ -75,6 +83,7 @@
   }
   function close(){
     overlay.classList.remove('open');
+    help.classList.remove('show');
     overlay.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     if(lastFocus) lastFocus.focus({preventScroll:true});

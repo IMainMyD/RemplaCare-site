@@ -2,6 +2,7 @@
    Tout lien portant data-download ouvre une carte qui monte du bas de l'écran. */
 (function(){
   const APP_STORE = 'https://apps.apple.com/fr/app/remplacare/id6778571454';
+  const APK = 'https://github.com/IMainMyD/RemplaCare-site/releases/latest/download/Remplacare.apk';
 
   const css = `
   .dl-overlay{
@@ -38,8 +39,6 @@
   .dl-ios:hover{background:#15263A}
   .dl-android{background:#4E7A67;color:#fff}
   .dl-android:hover{background:#3F6354}
-  .dl-android[aria-disabled="true"]{background:#fff;color:#5A6B7B;cursor:default}
-  .dl-soon{font-size:12px;font-weight:500;opacity:.8}
   @media (prefers-reduced-motion: reduce){
     .dl-overlay,.dl-card{transition:none}
   }`;
@@ -60,7 +59,7 @@
       '<h2 id="dlTitle">Télécharger RemplaCare</h2>' +
       '<p>Choisis ton téléphone</p>' +
       '<a class="dl-btn dl-ios" href="' + APP_STORE + '" target="_blank" rel="noopener">' + apple + 'iOS</a>' +
-      '<a class="dl-btn dl-android" role="link" aria-disabled="true">' + android + 'Android <span class="dl-soon">· bientôt</span></a>' +
+      '<a class="dl-btn dl-android" href="' + APK + '">' + android + 'Android</a>' +
     '</div>';
   document.body.appendChild(overlay);
 

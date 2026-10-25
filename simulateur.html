@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Simulateur de cotisations — infirmier libéral remplaçant</title>
-<meta name="description" content="Estime tes cotisations URSSAF et CARPIMKO et ton net d'infirmier libéral remplaçant, à partir de ton CA journalier, mensuel ou annuel. Calculs fournis par le moteur officiel URSSAF.">
+<title>Simulateur de charges mois par mois — libéral de santé remplaçant</title>
+<meta name="description" content="Anticipe, mois par mois sur 3 ans, ce que l'Urssaf, ta caisse de retraite (CARPIMKO, CIPAV) et les impôts vont prélever. Régularisations et pièges des premières années inclus. Calculs par le moteur officiel URSSAF.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
@@ -15,21 +15,25 @@
     --text:#1C324A; --text-2:#5A6B7B; --danger:#E84545;
     --radius-l:24px; --radius-m:18px; --radius-s:12px;
     --title:"Fraunces",Georgia,serif; --body:"Jost","Helvetica Neue",Arial,sans-serif;
+    /* Séries du graphique : palette catégorielle validée (ordre fixe, contrôle
+       daltonisme passé) — bleu = Urssaf, orange = caisse, aqua = impôt. */
+    --serie-urssaf:#2a78d6; --serie-caisse:#eb6834; --serie-impot:#1baf7a;
+    --grille:#EEF1F4;
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);
        font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:680px;margin:0 auto;padding:32px 20px 64px}
+  .wrap{max-width:760px;margin:0 auto;padding:32px 16px 64px}
   h1{font-family:var(--title);font-weight:600;font-size:30px;line-height:1.2;margin:0 0 8px}
   .sub{color:var(--text-2);font-size:15px;margin:0 0 28px}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-l);
         padding:24px;margin-bottom:20px}
-  label{display:block;font-weight:500;font-size:14px;margin-bottom:8px}
+  label,.label{display:block;font-weight:500;font-size:14px;margin-bottom:8px}
   .hint{color:var(--text-2);font-size:13px;font-weight:400;margin-top:6px}
-  input[type=number],select{
+  input[type=number],input[type=month],select{
     width:100%;padding:13px 14px;font-family:var(--body);font-size:16px;color:var(--text);
     background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-m);appearance:none}
-  input[type=number]:focus,select[type]:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
+  input:focus,select:focus{outline:2px solid var(--sage);outline-offset:1px}
   select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7A88' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
          background-repeat:no-repeat;background-position:right 14px center;padding-right:40px}
   .seg{display:flex;gap:8px;flex-wrap:wrap}
@@ -38,36 +42,65 @@
   .seg button[aria-pressed=true]{background:var(--sage-soft);border-color:var(--sage);color:var(--text)}
   .field{margin-bottom:18px}
   .field:last-child{margin-bottom:0}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .cta{width:100%;padding:15px;margin-top:4px;font-family:var(--body);font-size:16px;font-weight:500;
        color:#fff;background:var(--navy);border:0;border-radius:999px;cursor:pointer}
   .cta:disabled{opacity:.45;cursor:not-allowed}
   .recap{margin-top:14px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-s);
          font-size:14px;color:var(--text-2)}
+  .recap:empty{display:none}
   .recap b{color:var(--text);font-weight:500}
   .hero{background:var(--navy);color:#fff;border-radius:var(--radius-l);padding:26px 24px;text-align:center}
   .hero .over{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--powder);margin:0 0 6px}
-  .hero .amount{font-family:var(--title);font-size:42px;line-height:1;margin:0}
-  .hero .note{font-size:13px;color:var(--powder);margin:8px 0 0}
+  .hero .amount{font-family:var(--title);font-size:46px;line-height:1;margin:0}
+  .hero .note{font-size:13px;color:var(--powder);margin:10px 0 0}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
   .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);padding:16px}
   .tile .k{font-size:12px;color:var(--text-2);margin:0 0 4px}
   .tile .v{font-family:var(--title);font-size:22px;margin:0}
-  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:14px}
-  td{padding:9px 0;border-bottom:1px solid var(--border)}
-  td:last-child{text-align:right;font-weight:500}
-  tr:last-child td{border-bottom:0}
-  h2{font-family:var(--title);font-weight:600;font-size:19px;margin:0 0 10px}
+  .tile .d{font-size:12px;color:var(--text-2);margin:2px 0 0}
+  h2{font-family:var(--title);font-weight:600;font-size:19px;margin:0 0 6px}
   .legal{font-size:13px;color:var(--text-2)}
   .legal ul{padding-left:18px;margin:10px 0}
   .legal li{margin-bottom:6px}
   .err{background:#FBE5E5;border:1px solid var(--danger);color:#8A1F1F;
        border-radius:var(--radius-m);padding:14px;font-size:14px}
-  .hidden{display:none}
+  .alerte{background:#FFF6EC;border:1px solid #F3D3B0;border-radius:var(--radius-m);
+          padding:14px 16px;font-size:14px;margin-top:14px}
+  .alerte b{font-weight:600}
+  .hidden{display:none !important}
   .spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);
         border-top-color:#fff;border-radius:50%;animation:r .7s linear infinite;vertical-align:-2px}
   @keyframes r{to{transform:rotate(360deg)}}
-  @media(max-width:420px){.grid{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:36px}}
 
+  /* ── Graphique mensuel ─────────────────────────────────────────────── */
+  .legende{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 6px;font-size:13px;color:var(--text-2)}
+  .legende span{display:inline-flex;align-items:center;gap:6px}
+  .legende i{display:inline-block;width:10px;height:10px;border-radius:3px}
+  .legende .ligne{width:16px;height:0;border-top:2px solid var(--text);border-radius:0}
+  .graphe{position:relative;margin-top:8px}
+  .graphe svg{display:block;width:100%;height:auto;overflow:visible}
+  .graphe text{font-family:var(--body);fill:var(--text-2);font-size:11px}
+  .bulle{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);
+         border-radius:var(--radius-s);padding:10px 12px;font-size:13px;line-height:1.45;
+         box-shadow:0 6px 20px rgba(28,50,74,.12);min-width:170px;z-index:5}
+  .bulle .t{font-weight:600;margin-bottom:4px}
+  .bulle .l{display:flex;justify-content:space-between;gap:14px}
+  .bulle .l span:first-child{display:inline-flex;align-items:center;gap:6px;color:var(--text-2)}
+  .bulle .l i{display:inline-block;width:8px;height:8px;border-radius:2px}
+  .bulle .tot{border-top:1px solid var(--border);margin-top:4px;padding-top:4px;font-weight:600}
+  .bulle .conf{color:var(--text-2);font-size:12px;margin-top:4px}
+  details{margin-top:14px}
+  summary{cursor:pointer;font-size:14px;font-weight:500;color:var(--sage-dark)}
+  .tableau{overflow-x:auto;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+  th{font-weight:500;color:var(--text-2);text-align:right;padding:6px 6px;border-bottom:1px solid var(--border)}
+  th:first-child,td:first-child{text-align:left}
+  td{padding:6px 6px;border-bottom:1px solid var(--border);text-align:right}
+  tr.critique td{background:#FFF6EC}
+  td .etoile{color:var(--text-2)}
+  @media(max-width:520px){.grid,.row{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:38px}
+    .card{padding:20px}}
 
   /* ── Bandeau de navigation (identique à l'accueil) ───────────────────── */
   .site-nav{position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
@@ -104,17 +137,49 @@
 
 <div class="wrap">
 
-  <h1>Combien te reste-t-il vraiment ?</h1>
-  <p class="sub">Estime tes cotisations URSSAF et CARPIMKO d'infirmier libéral remplaçant,
-     et ce qu'il faut mettre de côté chaque mois. Gratuit, sans inscription.</p>
+  <h1>Quand vont tomber tes charges ?</h1>
+  <p class="sub">Urssaf, caisse de retraite, impôt : ce qui sortira de ton compte, mois par mois, sur
+     3 ans — régularisations des premières années comprises. Et combien mettre de côté pour ne
+     jamais être à découvert. Gratuit, sans inscription.</p>
 
   <div class="card">
     <div class="field">
-      <label id="lbl-periode">Ton chiffre d'affaires est&nbsp;:</label>
-      <div class="seg" role="group" aria-labelledby="lbl-periode">
-        <button type="button" data-p="jour" aria-pressed="true">Journalier</button>
-        <button type="button" data-p="mois" aria-pressed="false">Mensuel</button>
-        <button type="button" data-p="an" aria-pressed="false">Annuel</button>
+      <label for="profession">Ta profession</label>
+      <select id="profession">
+        <optgroup label="Caisse : CARPIMKO">
+          <option value="auxiliaire_medical" data-caisse="CARPIMKO" selected>Infirmier·e</option>
+          <option value="auxiliaire_medical" data-caisse="CARPIMKO">Masseur-kinésithérapeute</option>
+          <option value="auxiliaire_medical" data-caisse="CARPIMKO">Orthophoniste</option>
+          <option value="auxiliaire_medical" data-caisse="CARPIMKO">Orthoptiste</option>
+          <option value="auxiliaire_medical" data-caisse="CARPIMKO">Pédicure-podologue</option>
+        </optgroup>
+        <optgroup label="Caisse : CIPAV">
+          <option value="cipav" data-caisse="CIPAV">Psychologue</option>
+          <option value="cipav" data-caisse="CIPAV">Ostéopathe</option>
+          <option value="cipav" data-caisse="CIPAV">Chiropracteur·rice</option>
+          <option value="cipav" data-caisse="CIPAV">Diététicien·ne</option>
+          <option value="cipav" data-caisse="CIPAV">Ergothérapeute</option>
+          <option value="cipav" data-caisse="CIPAV">Psychomotricien·ne</option>
+        </optgroup>
+        <optgroup label="Bientôt">
+          <option disabled>Médecin, sage-femme, chirurgien-dentiste, pharmacien</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="debut">Début de ton activité libérale</label>
+      <input type="month" id="debut" min="1980-01">
+      <p class="hint">Installé·e depuis des années ? Mets ta vraie date : les deux premières années
+         ne se calculent pas comme les suivantes.</p>
+    </div>
+
+    <div class="field">
+      <span class="label" id="lbl-periode">Ton chiffre d'affaires est&nbsp;:</span>
+      <div class="seg" role="group" aria-labelledby="lbl-periode" data-groupe="periode">
+        <button type="button" data-v="jour" aria-pressed="true">Journalier</button>
+        <button type="button" data-v="mois" aria-pressed="false">Mensuel</button>
+        <button type="button" data-v="an" aria-pressed="false">Annuel</button>
       </div>
     </div>
 
@@ -149,7 +214,15 @@
       <p class="hint">Véhicule, matériel, logiciel, assurance, cotisation ordinale…</p>
     </div>
 
-    <button class="cta" id="go">Calculer mon net</button>
+    <div class="field">
+      <span class="label" id="lbl-paiement">Tu paies l'Urssaf&nbsp;:</span>
+      <div class="seg" role="group" aria-labelledby="lbl-paiement" data-groupe="paiement">
+        <button type="button" data-v="mensuelle" aria-pressed="true">Chaque mois</button>
+        <button type="button" data-v="trimestrielle" aria-pressed="false">Chaque trimestre</button>
+      </div>
+    </div>
+
+    <button class="cta" id="go">Voir mon calendrier</button>
     <div class="recap" id="recap"></div>
   </div>
 
@@ -157,53 +230,66 @@
 
   <div id="resultats" class="hidden">
     <div class="hero">
-      <p class="over">Il te reste, par mois</p>
-      <p class="amount" id="r-net-mois">—</p>
-      <p class="note">après cotisations, avant impôt sur le revenu</p>
+      <p class="over">À mettre de côté chaque mois</p>
+      <p class="amount" id="r-prov">—</p>
+      <p class="note" id="r-prov-note"></p>
     </div>
 
     <div class="grid">
       <div class="tile">
-        <p class="k">À provisionner par mois</p>
-        <p class="v" id="r-prov">—</p>
+        <p class="k">Il te reste par mois</p>
+        <p class="v" id="r-net">—</p>
+        <p class="d" id="r-net-d"></p>
       </div>
       <div class="tile">
-        <p class="k">Net annuel</p>
-        <p class="v" id="r-net-an">—</p>
+        <p class="k">Mois le plus lourd</p>
+        <p class="v" id="r-max">—</p>
+        <p class="d" id="r-max-d"></p>
       </div>
       <div class="tile">
-        <p class="k">Cotisations annuelles</p>
+        <p class="k">Cotisations par an</p>
         <p class="v" id="r-cotis">—</p>
+        <p class="d" id="r-cotis-d"></p>
       </div>
       <div class="tile">
-        <p class="k">CA annuel retenu</p>
-        <p class="v" id="r-ca">—</p>
+        <p class="k">Impôt estimé par an</p>
+        <p class="v" id="r-impot">—</p>
+        <p class="d">seul·e dans le foyer, 1 part</p>
       </div>
     </div>
 
     <div class="card" style="margin-top:20px">
-      <h2>Détail de tes cotisations retraite</h2>
-      <table>
-        <tr><td>Retraite de base (CNAVPL)</td><td id="d-base">—</td></tr>
-        <tr><td>Retraite complémentaire (CARPIMKO)</td><td id="d-comp">—</td></tr>
-        <tr><td>Invalidité-décès</td><td id="d-inv">—</td></tr>
-        <tr><td>ASV</td><td id="d-asv">—</td></tr>
-      </table>
-      <p class="hint" id="d-reste"></p>
+      <h2>Ce qui sort de ton compte, mois par mois</h2>
+      <div class="legende" id="legende"></div>
+      <div class="graphe" id="graphe" role="img" aria-describedby="graphe-desc">
+        <p id="graphe-desc" class="hidden"></p>
+      </div>
+      <div id="alerte" class="alerte hidden"></div>
+      <details>
+        <summary>Voir le tableau mois par mois</summary>
+        <div class="tableau"><table id="tableau"></table></div>
+        <p class="hint">* Date de prélèvement estimée, à confirmer sur ton avis d'appel.</p>
+      </details>
     </div>
+
+    <div class="card legal" id="avertissements"></div>
   </div>
 
   <div class="card legal">
     <h2>À lire avant d'utiliser ces chiffres</h2>
     <ul>
-      <li>Ce simulateur s'adresse aux <b>auxiliaires médicaux en BNC</b>, dont les infirmiers
-          libéraux remplaçants. Il ne couvre pas les sociétés d'exercice libéral (SELARL, SELAS).</li>
-      <li>Il ne calcule pas l'<b>impôt sur le revenu</b> : le net affiché est un net avant impôt.</li>
-      <li>Il ne calcule pas la <b>cotisation ordinale</b> — à ajouter dans tes charges.</li>
-      <li>Il ne gère pas le cas d'un <b>changement de régime fiscal en cours d'année</b>.</li>
-      <li>Les montants sont <b>indicatifs</b>. Ils ne se substituent pas aux décomptes réels de
-          l'URSSAF, de la CARPIMKO ou de l'administration fiscale, ni à l'avis de ton
-          expert-comptable.</li>
+      <li>Ce simulateur couvre les <b>auxiliaires médicaux affiliés à la CARPIMKO</b> et les
+          <b>professions affiliées à la CIPAV</b>, en entreprise individuelle (micro-BNC ou frais
+          réels). Il ne couvre pas les sociétés d'exercice libéral (SELARL, SELAS).</li>
+      <li>Les montants dus viennent du <b>moteur officiel URSSAF</b>. Le calendrier des prélèvements
+          est calé sur de vrais avis d'appel Urssaf et CARPIMKO et sur le simulateur de la CARPIMKO ;
+          les dates encore incertaines sont signalées.</li>
+      <li>L'<b>impôt</b> est estimé comme si ce revenu était le seul du foyer, pour 1 part : c'est
+          un majorant pour la plupart des foyers.</li>
+      <li>La <b>cotisation ordinale</b> n'est pas incluse — à ajouter dans tes charges.</li>
+      <li>Les barèmes de l'année en cours sont appliqués aux 3 années simulées.</li>
+      <li>Les montants sont <b>indicatifs</b>. Ils ne se substituent pas à tes avis d'appel ni à
+          l'avis de ton expert-comptable.</li>
     </ul>
     <p style="margin-bottom:0">Calculs fournis par le moteur officiel URSSAF
        (<a href="https://mon-entreprise.urssaf.fr" target="_blank" rel="noopener">mon-entreprise</a>),
@@ -216,26 +302,29 @@
   "use strict";
 
   // ── Configuration ──────────────────────────────────────────────────────────
-  // Edge Function Supabase qui interroge le moteur URSSAF. La clé est la clé
-  // ANON (publique par conception) : elle ne donne accès à aucune donnée.
-  var ENDPOINT = "https://eyackplrxyqsrrpsmarz.supabase.co/functions/v1/compute-net";
+  // Edge Function Supabase qui interroge le moteur URSSAF et calcule le
+  // calendrier. La clé est la clé ANON (publique par conception) : elle ne
+  // donne accès à aucune donnée.
+  var ENDPOINT = "https://eyackplrxyqsrrpsmarz.supabase.co/functions/v1/compute-echeancier";
   var ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5YWNrcGxyeHlxc3JycHNtYXJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDMxMjUsImV4cCI6MjA5NDA3OTEyNX0.Png9VY6FIYLIDY5EeI0avymkxOz9EJcGyo9MBbI86MY";
 
   var $ = function(id){ return document.getElementById(id); };
-  var periode = "jour";
+  var MOIS_COURTS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+  var MOIS_LONGS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  var etat = { periode: "jour", paiement: "mensuelle" };
+  var dernier = null; // dernière réponse, pour redessiner le graphique au redimensionnement
 
-  // ── Remplissage des listes ─────────────────────────────────────────────────
+  // ── Listes et valeurs par défaut ───────────────────────────────────────────
   var sJours = $("jours");
-  for (var j = 1; j <= 31; j++) {
-    sJours.add(new Option(j + (j === 1 ? " jour" : " jours"), j, false, j === 18));
-  }
+  for (var j = 1; j <= 31; j++) sJours.add(new Option(j + (j === 1 ? " jour" : " jours"), j, false, j === 18));
   var sMois = $("mois");
-  for (var m = 1; m <= 12; m++) {
-    sMois.add(new Option(m + (m === 1 ? " mois" : " mois"), m, false, m === 11));
-  }
-  $("annee").textContent = new Date().getFullYear();
+  for (var m = 1; m <= 12; m++) sMois.add(new Option(m + " mois", m, false, m === 11));
+  var maintenant = new Date();
+  $("annee").textContent = maintenant.getFullYear();
+  $("debut").value = maintenant.getFullYear() + "-01";
+  $("debut").max = (maintenant.getFullYear() + 1) + "-12";
 
-  // ── Bascule de période ─────────────────────────────────────────────────────
+  // ── Boutons segmentés ──────────────────────────────────────────────────────
   var LABELS = {
     jour: "Chiffre d'affaires par jour travaillé",
     mois: "Chiffre d'affaires par mois travaillé",
@@ -243,20 +332,22 @@
   };
   var PLACEHOLDERS = { jour: "350", mois: "6000", an: "60000" };
 
-  Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function(btn){
-    btn.addEventListener("click", function(){
-      periode = btn.getAttribute("data-p");
-      Array.prototype.forEach.call(document.querySelectorAll(".seg button"), function(b){
-        b.setAttribute("aria-pressed", String(b === btn));
+  Array.prototype.forEach.call(document.querySelectorAll(".seg"), function(groupe){
+    var cle = groupe.getAttribute("data-groupe");
+    Array.prototype.forEach.call(groupe.querySelectorAll("button"), function(btn){
+      btn.addEventListener("click", function(){
+        etat[cle] = btn.getAttribute("data-v");
+        Array.prototype.forEach.call(groupe.querySelectorAll("button"), function(b){
+          b.setAttribute("aria-pressed", String(b === btn));
+        });
+        if (cle === "periode") {
+          $("ca-label").textContent = LABELS[etat.periode];
+          $("ca").placeholder = PLACEHOLDERS[etat.periode];
+          $("f-jours").classList.toggle("hidden", etat.periode !== "jour");
+          $("f-mois").classList.toggle("hidden", etat.periode !== "mois");
+        }
+        majRecap();
       });
-      $("ca-label").textContent = LABELS[periode];
-      $("ca").placeholder = PLACEHOLDERS[periode];
-      // Journalier : on demande les jours/mois, puis on annualise sur 12 mois.
-      // Mensuel : on demande le nombre de mois réellement travaillés.
-      // Annuel : rien à demander.
-      $("f-jours").classList.toggle("hidden", periode !== "jour");
-      $("f-mois").classList.toggle("hidden", periode !== "mois");
-      majRecap();
     });
   });
 
@@ -264,43 +355,54 @@
     $("f-charges").classList.toggle("hidden", $("regime").value !== "reel");
     majRecap();
   });
-
-  ["ca","jours","mois","charges"].forEach(function(id){
+  ["ca","jours","mois","charges","debut"].forEach(function(id){
     $(id).addEventListener("input", majRecap);
     $(id).addEventListener("change", majRecap);
   });
 
-  // ── Annualisation ──────────────────────────────────────────────────────────
+  // ── Saisie ─────────────────────────────────────────────────────────────────
   function caAnnuel(){
     var v = parseFloat($("ca").value);
     if (!isFinite(v) || v <= 0) return 0;
-    if (periode === "jour") return v * parseInt(sJours.value, 10) * 12;
-    if (periode === "mois") return v * parseInt(sMois.value, 10);
+    if (etat.periode === "jour") return v * parseInt(sJours.value, 10) * 12;
+    if (etat.periode === "mois") return v * parseInt(sMois.value, 10);
     return v;
+  }
+
+  function debutActivite(){
+    var v = $("debut").value; // 'YYYY-MM'
+    return /^\d{4}-\d{2}$/.test(v) ? v + "-01" : null;
+  }
+
+  function caisse(){
+    return $("profession").selectedOptions[0].getAttribute("data-caisse");
   }
 
   function euros(n){
     return Math.round(n).toLocaleString("fr-FR") + " €";
   }
 
+  function nomMois(iso, long){
+    var a = iso.slice(0, 4), m = parseInt(iso.slice(5, 7), 10) - 1;
+    return (long ? MOIS_LONGS[m] : MOIS_COURTS[m]) + " " + a;
+  }
+
   function majRecap(){
     var ca = caAnnuel();
     if (ca <= 0) { $("recap").textContent = ""; return; }
-    var detail = periode === "jour"
-      ? parseInt(sJours.value,10) + " jours/mois sur 12 mois"
-      : periode === "mois"
-        ? sMois.value + " mois travaillés"
-        : "saisi directement";
-    $("recap").innerHTML = "CA annuel retenu : <b>" + euros(ca) + "</b> — " + detail + ".";
+    var detail = etat.periode === "jour"
+      ? parseInt(sJours.value, 10) + " jours/mois sur 12 mois"
+      : etat.periode === "mois" ? sMois.value + " mois travaillés" : "saisi directement";
+    $("recap").innerHTML = "Rythme annuel retenu : <b>" + euros(ca) + "</b> — " + detail +
+      ". La première année, il est compté au prorata à partir de ton installation.";
   }
 
   // ── Appel ──────────────────────────────────────────────────────────────────
   var MESSAGES = {
-    PARAMS_INVALIDES: "Les montants saisis ne permettent pas le calcul. Vérifie ton CA et tes charges.",
-    API_INDISPONIBLE: "Le service de calcul URSSAF est momentanément indisponible. Réessaie plus tard.",
-    TIMEOUT:          "Le calcul a mis trop de temps. Réessaie dans un instant.",
+    PARAMS_INVALIDES: "Les informations saisies ne permettent pas le calcul. Vérifie ton CA, tes charges et ta date de début.",
     REGLE_INCONNUE:   "Le calcul est temporairement indisponible : les règles URSSAF ont changé.",
-    RESEAU:           "Impossible de joindre le service de calcul. Vérifie ta connexion."
+    MOTEUR_DIVERGENT: "Le calcul est suspendu par sécurité : le moteur URSSAF ne correspond plus à ses références. Réessaie plus tard.",
+    RESEAU:           "Impossible de joindre le service de calcul. Vérifie ta connexion et réessaie."
   };
 
   function erreur(code){
@@ -312,13 +414,12 @@
 
   $("go").addEventListener("click", function(){
     var ca = caAnnuel();
-    if (ca <= 0) { erreur("PARAMS_INVALIDES"); return; }
-    if (ca > 1000000) { erreur("PARAMS_INVALIDES"); return; }
-
+    var debut = debutActivite();
     var regime = $("regime").value;
     var charges = regime === "reel" ? (parseFloat($("charges").value) || 0) : 0;
-    if (charges > ca) { erreur("PARAMS_INVALIDES"); return; }
+    if (ca <= 0 || ca > 1000000 || charges > ca || !debut) { erreur("PARAMS_INVALIDES"); return; }
 
+    var anneeDebut = parseInt(debut.slice(0, 4), 10);
     var btn = $("go");
     btn.disabled = true;
     btn.innerHTML = '<span class="spin"></span> Calcul en cours…';
@@ -332,22 +433,30 @@
         "apikey": ANON_KEY
       },
       body: JSON.stringify({
+        metier: $("profession").value,
+        regime: regime,
+        remplacant: true,
+        debutActivite: debut,
+        anneeDebutSimulation: Math.max(maintenant.getFullYear(), anneeDebut),
         caAnnuel: Math.round(ca),
         chargesAnnuelles: Math.round(charges),
-        regime: regime,
-        remplacant: true
+        periodiciteUrssaf: etat.paiement
       })
     })
     .then(function(r){
       return r.json().then(function(data){
-        if (!r.ok) throw new Error((data && data.code) || "RESEAU");
+        if (!r.ok) throw new Error((data && data.erreur) || "RESEAU");
         return data;
       });
     })
     .then(function(data){
-      afficher(data.resultat, Math.round(ca));
+      dernier = { data: data, ca: Math.round(ca), charges: Math.round(charges), anneeDebut: anneeDebut, caisse: caisse() };
+      afficher(dernier);
     })
     .catch(function(e){
+      // Codes métier de l'API → message dédié ; tout le reste (réseau, ou
+      // bug d'affichage) → message générique, détail en console pour le diagnostic.
+      if (!MESSAGES[e.message]) console.error("Simulateur :", e);
       erreur(MESSAGES[e.message] ? e.message : "RESEAU");
     })
     .finally(function(){
@@ -356,37 +465,220 @@
     });
   });
 
-  function afficher(r, ca){
-    $("r-net-mois").textContent = euros(r.netMensuel);
-    $("r-net-an").textContent   = euros(r.netApresCharges);
-    $("r-ca").textContent       = euros(ca);
-    $("r-prov").textContent     = r.aProvisionnerMensuel == null ? "—" : euros(r.aProvisionnerMensuel);
-    $("r-cotis").textContent    = r.cotisationsAnnuelles == null ? "—" : euros(r.cotisationsAnnuelles);
+  // ── Affichage ──────────────────────────────────────────────────────────────
+  function afficher(d){
+    var res = d.data.resultat;
+    var e = res.echeancier;
+    var nomCaisse = d.caisse;
+    var mois0 = e.mois[0].mois;
 
-    var d = r.detail || {};
-    var somme = 0, connus = 0;
-    [["d-base", d.retraiteBase], ["d-comp", d.carpimkoComplementaire],
-     ["d-inv", d.invaliditeDeces], ["d-asv", d.asv]].forEach(function(pair){
-      var v = pair[1];
-      $(pair[0]).textContent = (v == null) ? "—" : euros(v);
-      if (v != null) { somme += v; connus++; }
-    });
+    $("r-prov").textContent = euros(e.provisionRecommandee);
+    $("r-prov-note").textContent = "sur un compte dédié, à partir de " + nomMois(mois0, true) +
+      " : de quoi payer l'Urssaf" + (nomCaisse === "CIPAV" ? " (qui encaisse aussi la CIPAV)" : ", la " + nomCaisse) +
+      " et l'impôt pendant 3 ans sans jamais être à découvert.";
 
-    // Le reste des cotisations (maladie, CSG-CRDS, formation) n'est pas détaillé
-    // par le moteur : on l'affiche comme un solde plutôt que de le passer sous
-    // silence, sans jamais inventer sa composition.
-    if (r.cotisationsAnnuelles != null && connus === 4) {
-      var reste = r.cotisationsAnnuelles - somme;
-      $("d-reste").textContent = reste > 0
-        ? "Le reste (" + euros(reste) + ") couvre la maladie, la CSG-CRDS et la formation professionnelle."
-        : "";
-    } else {
-      $("d-reste").textContent = "";
-    }
+    // Année pleine de référence : la première année simulée qui n'est pas
+    // l'année d'installation (celle-ci est incomplète).
+    var pleine = res.montantsDus.filter(function(x){
+      return x.annee > d.anneeDebut && x.annee >= parseInt(mois0.slice(0, 4), 10);
+    })[0] || res.montantsDus[res.montantsDus.length - 1];
+    $("r-net").textContent = euros((d.ca - d.charges - pleine.cotisations) / 12);
+    $("r-net-d").textContent = "après cotisations, avant impôt (" + pleine.annee + ")";
+    $("r-cotis").textContent = euros(pleine.cotisations);
+    $("r-cotis-d").textContent = "dues au titre de " + pleine.annee;
+    $("r-impot").textContent = euros(pleine.impot);
 
+    var max = e.mois.reduce(function(a, l){ return l.total > a.total ? l : a; }, e.mois[0]);
+    $("r-max").textContent = euros(max.total);
+    $("r-max-d").textContent = nomMois(max.mois, true);
+
+    // Afficher AVANT de dessiner : masqué, le conteneur mesure 0 px de large
+    // et le graphique serait tracé trop petit puis étiré (textes géants).
     $("resultats").classList.remove("hidden");
+    dessiner(e, nomCaisse);
+    tableau(e, nomCaisse);
+    alerte(e);
+
+    var av = d.data.avertissements || [];
+    $("avertissements").innerHTML = "<h2>Hypothèses de ce calcul</h2><ul>" +
+      av.map(function(a){ return "<li>" + echapper(a) + "</li>"; }).join("") + "</ul>";
+
     $("resultats").scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  function series(nomCaisse){
+    var s = [{ cle: "urssaf", nom: "Urssaf", couleur: "var(--serie-urssaf)" }];
+    if (nomCaisse !== "CIPAV") s.push({ cle: "caisse", nom: nomCaisse, couleur: "var(--serie-caisse)" });
+    s.push({ cle: "impot", nom: "Impôt", couleur: "var(--serie-impot)" });
+    return s;
+  }
+
+  // Mois groupés en plages lisibles : « juillet à novembre 2027 ».
+  function plages(liste){
+    var out = [], debut = null, prec = null;
+    function idx(iso){ return parseInt(iso.slice(0, 4), 10) * 12 + parseInt(iso.slice(5, 7), 10) - 1; }
+    liste.concat([null]).forEach(function(iso){
+      if (iso && prec && idx(iso) === idx(prec) + 1) { prec = iso; return; }
+      if (debut) {
+        out.push(debut === prec ? nomMois(debut, true)
+          : (debut.slice(0, 4) === prec.slice(0, 4)
+              ? MOIS_LONGS[parseInt(debut.slice(5, 7), 10) - 1] + " à " + nomMois(prec, true)
+              : nomMois(debut, true) + " à " + nomMois(prec, true)));
+      }
+      debut = prec = iso;
+    });
+    return out;
+  }
+
+  function alerte(e){
+    var box = $("alerte");
+    if (!e.moisCritiques.length) { box.classList.add("hidden"); return; }
+    var pic = e.mois.filter(function(l){ return e.moisCritiques.indexOf(l.mois) >= 0; })
+      .reduce(function(a, l){ return l.total > a ? l.total : a; }, 0);
+    box.innerHTML = "<b>Mois à surveiller : " + plages(e.moisCritiques).join(", ") + ".</b> Jusqu'à " +
+      euros(pic) + " prélevés, plus d'une fois et demie ta provision. Ce sont les régularisations " +
+      "et les rattrapages d'impôt : la provision mensuelle sert à les avoir de côté le moment venu.";
+    box.classList.remove("hidden");
+  }
+
+  function tableau(e, nomCaisse){
+    var s = series(nomCaisse);
+    var html = "<thead><tr><th>Mois</th>" + s.map(function(x){ return "<th>" + x.nom + "</th>"; }).join("") +
+      "<th>Total</th></tr></thead><tbody>";
+    e.mois.forEach(function(l){
+      var aConfirmer = l.mouvements.some(function(mv){ return mv.aConfirmer.length > 0; });
+      html += "<tr" + (e.moisCritiques.indexOf(l.mois) >= 0 ? ' class="critique"' : "") + "><td>" +
+        nomMois(l.mois) + (aConfirmer ? ' <span class="etoile">*</span>' : "") + "</td>" +
+        s.map(function(x){ return "<td>" + euros(l[x.cle]) + "</td>"; }).join("") +
+        "<td><b>" + euros(l.total) + "</b></td></tr>";
+    });
+    $("tableau").innerHTML = html + "</tbody>";
+  }
+
+  // ── Graphique : colonnes empilées, une par mois, ligne de provision ────────
+  function dessiner(e, nomCaisse){
+    var s = series(nomCaisse);
+    $("legende").innerHTML = s.map(function(x){
+      return '<span><i style="background:' + x.couleur + '"></i>' + x.nom + "</span>";
+    }).join("") + '<span><i class="ligne"></i>Provision mensuelle</span>';
+
+    var box = $("graphe");
+    var W = Math.max(300, box.clientWidth), H = W < 480 ? 220 : 260;
+    var g = { gauche: 40, droite: 6, haut: 10, bas: 26 };
+    var n = e.mois.length;
+    var bande = (W - g.gauche - g.droite) / n;
+    var largeur = Math.min(24, Math.max(4, bande - 2)); // ≤ 24px, 2px d'air entre colonnes
+
+    var hauts = e.mois.map(function(l){ return s.reduce(function(a, x){ return a + Math.max(0, l[x.cle]); }, 0); });
+    var bas = e.mois.map(function(l){ return s.reduce(function(a, x){ return a + Math.min(0, l[x.cle]); }, 0); });
+    var maxV = Math.max(e.provisionRecommandee, Math.max.apply(null, hauts));
+    var minV = Math.min(0, Math.min.apply(null, bas));
+    var pas = pasPropre((maxV - minV) / 4);
+    var yMax = Math.ceil(maxV / pas) * pas, yMin = Math.floor(minV / pas) * pas;
+    var y = function(v){ return g.haut + (yMax - v) / (yMax - yMin) * (H - g.haut - g.bas); };
+
+    var svg = ['<svg viewBox="0 0 ' + W + " " + H + '" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'];
+    for (var v = yMin; v <= yMax + 1e-6; v += pas) {
+      svg.push('<line x1="' + g.gauche + '" x2="' + (W - g.droite) + '" y1="' + y(v) + '" y2="' + y(v) +
+        '" stroke="var(--grille)" stroke-width="1"/>');
+      svg.push('<text x="' + (g.gauche - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + compact(v) + "</text>");
+    }
+    e.mois.forEach(function(l, i){
+      var cx = g.gauche + bande * i + bande / 2, x0 = cx - largeur / 2;
+      // Empilement : chaque segment positif monte depuis le précédent, avec
+      // 2px de vide (couleur du fond) entre segments ; seul le sommet est arrondi.
+      var cumul = 0, segs = s.filter(function(x){ return l[x.cle] > 0; });
+      segs.forEach(function(x, k){
+        var h0 = y(cumul), h1 = y(cumul + l[x.cle]);
+        cumul += l[x.cle];
+        var haut = h1, basY = h0 - (k > 0 ? 2 : 0); // 2px de vide sous chaque segment empilé
+        if (basY - haut < 0.5) return;
+        svg.push(k === segs.length - 1 ? colonneArrondie(x0, haut, largeur, basY - haut, x.couleur)
+          : '<rect x="' + x0 + '" y="' + haut + '" width="' + largeur + '" height="' + (basY - haut) +
+            '" fill="' + x.couleur + '"/>');
+      });
+      var neg = 0; // remboursements : sous la ligne de base
+      s.forEach(function(x){
+        if (l[x.cle] >= 0) return;
+        var h0 = y(neg), h1 = y(neg + l[x.cle]);
+        neg += l[x.cle];
+        svg.push('<rect x="' + x0 + '" y="' + h0 + '" width="' + largeur + '" height="' + Math.max(0, h1 - h0) +
+          '" fill="' + x.couleur + '" opacity=".55"/>');
+      });
+      if (l.mois.slice(5) === "01" || i === 0) {
+        svg.push('<text x="' + (g.gauche + bande * i) + '" y="' + (H - 6) + '">' + l.mois.slice(0, 4) + "</text>");
+        if (i > 0) svg.push('<line x1="' + (g.gauche + bande * i) + '" x2="' + (g.gauche + bande * i) +
+          '" y1="' + g.haut + '" y2="' + (H - g.bas) + '" stroke="var(--border)" stroke-width="1"/>');
+      }
+    });
+    svg.push('<line x1="' + g.gauche + '" x2="' + (W - g.droite) + '" y1="' + y(0) + '" y2="' + y(0) +
+      '" stroke="var(--border)" stroke-width="1"/>');
+    var yp = y(e.provisionRecommandee);
+    svg.push('<line x1="' + g.gauche + '" x2="' + (W - g.droite) + '" y1="' + yp + '" y2="' + yp +
+      '" stroke="var(--text)" stroke-width="2" stroke-linecap="round"/>');
+    svg.push("</svg>");
+
+    box.innerHTML = '<p id="graphe-desc" class="hidden"></p>' + svg.join("") +
+      '<div class="bulle hidden" id="bulle"></div>';
+    $("graphe-desc").textContent = "Prélèvements mensuels de " + nomMois(e.mois[0].mois, true) + " à " +
+      nomMois(e.mois[n - 1].mois, true) + ". Le détail chiffré est dans le tableau mois par mois.";
+
+    // Survol / toucher : la zone de détection couvre toute la bande du mois.
+    var bulle = $("bulle");
+    function montrer(evt){
+      var rect = box.getBoundingClientRect();
+      var px = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+      var i = Math.floor((px * W / rect.width - g.gauche) / bande);
+      if (i < 0 || i >= n) { bulle.classList.add("hidden"); return; }
+      var l = e.mois[i];
+      var conf = l.mouvements.some(function(mv){ return mv.aConfirmer.length > 0; });
+      bulle.innerHTML = '<div class="t">' + nomMois(l.mois, true) + "</div>" +
+        s.map(function(x){
+          return '<div class="l"><span><i style="background:' + x.couleur + '"></i>' + x.nom +
+            "</span><span>" + euros(l[x.cle]) + "</span></div>";
+        }).join("") +
+        '<div class="l tot"><span>Total</span><span>' + euros(l.total) + "</span></div>" +
+        (conf ? '<div class="conf">Date estimée, à confirmer sur ton avis d\'appel.</div>' : "");
+      bulle.classList.remove("hidden");
+      var bx = (g.gauche + bande * i + bande / 2) * rect.width / W;
+      var largeurBulle = bulle.offsetWidth;
+      bulle.style.left = Math.min(Math.max(0, bx - largeurBulle / 2), rect.width - largeurBulle) + "px";
+      bulle.style.top = "-8px";
+      bulle.style.transform = "translateY(-100%)";
+    }
+    box.onmousemove = montrer;
+    box.ontouchstart = montrer;
+    box.ontouchmove = montrer;
+    box.onmouseleave = function(){ bulle.classList.add("hidden"); };
+  }
+
+  function colonneArrondie(x, yTop, w, h, couleur){
+    var r = Math.min(4, w / 2, h);
+    return '<path d="M' + x + "," + (yTop + h) + "V" + (yTop + r) + "Q" + x + "," + yTop + " " + (x + r) + "," + yTop +
+      "H" + (x + w - r) + "Q" + (x + w) + "," + yTop + " " + (x + w) + "," + (yTop + r) + "V" + (yTop + h) +
+      'Z" fill="' + couleur + '"/>';
+  }
+
+  function pasPropre(brut){
+    var p = Math.pow(10, Math.floor(Math.log10(Math.max(1, brut))));
+    var f = brut / p;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * p;
+  }
+
+  function compact(v){
+    if (Math.abs(v) >= 1000) return (v / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " k€";
+    return Math.round(v) + " €";
+  }
+
+  function echapper(t){
+    return String(t).replace(/[&<>"]/g, function(c){ return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
+  }
+
+  var attente;
+  window.addEventListener("resize", function(){
+    clearTimeout(attente);
+    attente = setTimeout(function(){ if (dernier) dessiner(dernier.data.resultat.echeancier, dernier.caisse); }, 150);
+  });
 
   majRecap();
 })();

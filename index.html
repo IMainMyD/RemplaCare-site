@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RemplaCare — Pilote ton activité de remplaçant (enfin) avec visibilité</title>
-<meta name="description" content="Application pour infirmier libéral remplaçant (IDEL) : planifie tes remplacements, suis ton chiffre d'affaires et tes rétrocessions en temps réel. Créée par un IDEL remplaçant. Gratuite.">
-<meta name="keywords" content="infirmier libéral remplaçant, IDEL remplaçant, application remplaçant IDEL, planning infirmier remplaçant, chiffre d'affaires IDEL, rétrocession infirmier, suivi CA remplaçant">
+<meta name="description" content="Application pour les professionnels libéraux de santé remplaçants (infirmiers, kinés, orthophonistes, sages-femmes…) : planifie tes remplacements, suis ton chiffre d'affaires et tes rétrocessions en temps réel. Créée par un infirmier libéral remplaçant. Gratuite.">
+<meta name="keywords" content="libéral de santé remplaçant, paramédical remplaçant, kiné remplaçant, infirmier libéral remplaçant, IDEL remplaçant, application remplaçant IDEL, planning infirmier remplaçant, chiffre d'affaires IDEL, rétrocession infirmier, suivi CA remplaçant">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
@@ -48,17 +48,17 @@
   /* ── Nav ──────────────────────────────── */
   nav{
     position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
-    backdrop-filter:blur(8px);padding:16px 0;
+    backdrop-filter:blur(8px);padding:22px 0;
   }
   nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:#fff;text-decoration:none;white-space:nowrap}
+  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:25px;color:#fff;text-decoration:none;white-space:nowrap}
   .brand em{color:var(--sage);font-style:normal}
   .nav-right{display:flex;align-items:center;gap:18px}
-  .nav-link{color:rgba(255,255,255,.8);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+  .nav-link{color:rgba(255,255,255,.8);text-decoration:none;font-weight:600;font-size:17px;white-space:nowrap}
   .nav-link:hover{color:#fff}
   .nav-cta{
-    background:var(--sage-dark);color:#fff;text-decoration:none;font-weight:600;font-size:14px;
-    padding:10px 20px;border-radius:22px;white-space:nowrap;transition:background .2s;
+    background:var(--sage-dark);color:#fff;text-decoration:none;font-weight:600;font-size:17px;
+    padding:12px 22px;border-radius:22px;white-space:nowrap;transition:background .2s;
   }
   .nav-cta:hover{background:#3F6354}
 
@@ -124,6 +124,14 @@
     margin-left:auto;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--sage-dark);
     text-align:right;white-space:nowrap;padding-top:2px;
   }
+  .fears{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:36px}
+  .fears-col{border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;color:var(--navy);line-height:1.6}
+  .fears-col p{font-weight:500;margin-bottom:10px}
+  .fears-col ul{padding-left:20px;margin:0}
+  .fears-col li{margin:4px 0}
+  .fears-col.clarity{border-color:var(--sage-dark)}
+  .fears-col .soon{color:var(--sage-dark);font-style:italic}
+  @media(max-width:700px){.fears{grid-template-columns:1fr}}
   .problem-close{
     text-align:center;margin-top:36px;font-size:19px;color:var(--navy);
     font-family:'Fraunces',serif;font-weight:600;
@@ -232,7 +240,7 @@
     .quotes{grid-template-columns:repeat(3,1fr)}
     .founder-inner{grid-template-columns:1fr}
   }
-  @media (max-width:420px){
+  @media (max-width:640px){
     .nav-link{display:none}
   }
   @media (prefers-reduced-motion:reduce){
@@ -249,6 +257,7 @@
     <a class="brand" href="/">rempl<em>a</em> care</a>
     <div class="nav-right">
       <a class="nav-link" href="/simulateur.html">Simulateur</a>
+      <a class="nav-link" href="/ordonnance.html">Ordonnance</a>
       <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
     </div>
   </div>
@@ -258,18 +267,18 @@
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <p class="eyebrow">Infirmiers libéraux remplaçants</p>
-      <h1>L'application des IDEL remplaçants.<br><em>Planning &amp; chiffre d'affaires.</em></h1>
+      <p class="eyebrow">Infirmiers, kinés, orthophonistes, sages-femmes…</p>
+      <h1>L'application des libéraux de santé remplaçants.</h1>
       <p class="lead">
-        Pointe tes jours de remplacement en un geste, vois ton CA se calculer tout seul —
-        rétrocessions comprises — et garde une vision claire du mois qui vient.
-        Sans Excel, sans attendre le comptable, sans y penser le dimanche soir.
+        RemplaCare offre enfin aux kinés, aux infirmiers et aux autres professionnels remplaçants
+        de la visibilité sur leur activité. Importe ton planning, ton CA journalier,
+        et suis toute ton activité grâce à notre dashboard.
       </p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="#telecharger" data-download>Télécharger l'app</a>
         <a class="btn btn-ghost" href="#valeur">Voir ce que ça change</a>
       </div>
-      <p class="hero-meta">Gratuit · iOS · Créée par un infirmier libéral remplaçant</p>
+      <p class="hero-meta">Gratuit · iOS et Android · Créée par un infirmier libéral remplaçant</p>
     </div>
 
     <!-- Signature : le calendrier interactif — touche les jours, le CA bouge -->
@@ -298,32 +307,43 @@
 <section class="problem">
   <div class="wrap narrow">
     <div class="section-head reveal">
-      <h2>Tu remplaces. Mais tu pilotes ?</h2>
-      <p class="lead">Quatre questions simples. Si tu mets plus de dix secondes à répondre, c'est que ton planning te coûte quelque chose.</p>
+      <h2>Pour les remplaçants qui pilotent leur activité avec précision</h2>
+      <p class="lead">Pose-toi ces 4 questions. Si tu n'as pas les réponses, RemplaCare va t'aider à voir plus clair.</p>
     </div>
 
     <div class="pain-list reveal">
       <div class="pain">
-        <p class="pain-q">« Combien j'ai gagné, ce mois-ci, rétrocessions déduites ? »</p>
-        <span class="pain-cost">Tu attends le comptable</span>
+        <p class="pain-q">« Combien je vais toucher ce mois-ci avec mes remplacements ? »</p>
       </div>
       <div class="pain">
-        <p class="pain-q">« Il me reste combien de jours libres en juin ? »</p>
-        <span class="pain-cost">Tu comptes à la main</span>
+        <p class="pain-q">« J'ai combien de jours de libre le mois prochain ? »</p>
       </div>
       <div class="pain">
-        <p class="pain-q">« Ce cabinet à 10 % de rétro, il me rapporte vraiment plus que l'autre à 5 % ? »</p>
-        <span class="pain-cost">Tu devines</span>
+        <p class="pain-q">« Quel cabinet me rapporte le plus, rétrocessions déduites ? »</p>
       </div>
       <div class="pain">
-        <p class="pain-q">« Je peux accepter cette tournée en plus ? »</p>
-        <span class="pain-cost">Tu dis oui, puis tu regrettes</span>
+        <p class="pain-q">« Est-ce que j'ai de la place pour un nouveau remplacement ? »</p>
       </div>
     </div>
 
-    <p class="problem-close reveal">
-      Un remplaçant qui ne voit pas son planning<br>ne choisit pas ses journées. Il les subit.
-    </p>
+    <div class="fears reveal">
+      <div class="fears-col">
+        <p>Nous, remplaçants, sommes là pour dépanner, et nous avons tendance à subir notre planning. Nous avons peur :</p>
+        <ul>
+          <li>de ne pas gagner assez&nbsp;;</li>
+          <li>d'avoir beaucoup de cotisations à payer&nbsp;;</li>
+          <li>de ne pas assez profiter.</li>
+        </ul>
+      </div>
+      <div class="fears-col clarity">
+        <p>Avec RemplaCare, un remplaçant gagne enfin en clarté. Il sait exactement :</p>
+        <ul>
+          <li>combien de CA il touche par mois&nbsp;;</li>
+          <li>combien de jours il travaille&nbsp;;</li>
+          <li>ce qu'il doit provisionner <em class="soon">(bientôt disponible)</em>.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -401,7 +421,7 @@
     <h2>Ton prochain mois commence maintenant.</h2>
     <p>Installe l'app, pointe ta première journée. Tu verras ton CA bouger dans la minute.</p>
     <a class="btn btn-primary" href="#telecharger" data-download>Télécharger l'app — gratuit</a>
-    <p class="hero-meta">Version bêta iOS · 2 minutes d'installation · Aucune carte bancaire</p>
+    <p class="hero-meta">Gratuit · iOS et Android · Aucune carte bancaire</p>
   </div>
 </section>
 
@@ -425,7 +445,7 @@
         et non en fonction des autres.
       </p>
       <p>
-        RemplaCare est en bêta. Chaque retour est le bienvenu !
+        Chaque retour est le bienvenu !
       </p>
       <div class="founder-sig">
         Samuel<span>Infirmier libéral remplaçant · Lyon</span>
@@ -439,7 +459,7 @@
   <div class="wrap">
     <div class="section-head reveal">
       <h2>Les premiers retours</h2>
-      <p class="lead">L'app vient d'ouvrir en bêta. Voici ce que disent les remplaçants qui l'utilisent déjà.</p>
+      <p class="lead">Voici ce que disent les remplaçants qui l'utilisent déjà.</p>
     </div>
 
     <div class="quotes reveal">
@@ -478,8 +498,7 @@
     </div>
 
     <p class="beta-note reveal">
-      <strong>RemplaCare est en bêta ouverte.</strong> Tu fais partie des premiers à l'utiliser —
-      et tes retours façonnent directement la suite. <a href="/feedback">Dis-nous ce qui manque.</a>
+      Tes retours façonnent directement la suite. <a href="/feedback">Dis-nous ce qui manque.</a>
     </p>
   </div>
 </section>
@@ -495,12 +514,7 @@
     <div class="faq reveal">
       <details>
         <summary>C'est vraiment gratuit ?</summary>
-        <p>Oui, entièrement, pendant toute la phase de bêta. Aucune carte bancaire n'est demandée. Certaines fonctions avancées deviendront payantes plus tard — le calendrier et le suivi de CA, eux, resteront accessibles gratuitement.</p>
-      </details>
-
-      <details>
-        <summary>Pourquoi je dois passer par TestFlight ?</summary>
-        <p>RemplaCare est en phase de test : elle n'est pas encore sur l'App Store classique. TestFlight est l'application officielle d'Apple pour installer une app avant sa sortie publique. L'installation prend deux minutes, et on te guide pas à pas.</p>
+        <p>Oui. Le calendrier et le suivi de CA sont gratuits, sans carte bancaire. La version Pro, à 12,90&nbsp;€/mois ou 119&nbsp;€/an, débloque des fonctions avancées.</p>
       </details>
 
       <details>
@@ -514,8 +528,8 @@
       </details>
 
       <details>
-        <summary>Je suis kiné remplaçant, pas infirmier. C'est pour moi ?</summary>
-        <p>L'app est conçue en priorité pour les infirmiers libéraux remplaçants, mais le planning et le suivi de CA fonctionnent de la même façon pour un kiné remplaçant. Si tu l'essaies, tes retours nous intéressent particulièrement.</p>
+        <summary>Je ne suis pas infirmier. C'est pour moi ?</summary>
+        <p>Oui. RemplaCare a été créée par un infirmier, mais le planning, le suivi de CA et les rétrocessions fonctionnent de la même façon pour tous les professionnels libéraux de santé remplaçants : kinés, orthophonistes, sages-femmes, médecins… Si tu l'essaies, tes retours sur ton métier nous intéressent particulièrement.</p>
       </details>
 
       <details>
@@ -525,7 +539,7 @@
 
       <details>
         <summary>Et sur Android ?</summary>
-        <p>Pas encore. La version iOS est en bêta, Android suivra si la demande est là. Écris-nous pour qu'on te prévienne dès que c'est prêt.</p>
+        <p>Oui. Clique sur « Télécharger », choisis Android, et l'APK se télécharge directement depuis ce site.</p>
       </details>
     </div>
   </div>
@@ -541,7 +555,7 @@
       il te reste pour toi. Ça commence par un tap.
     </p>
     <a class="btn btn-primary" href="#telecharger" data-download>Installer RemplaCare</a>
-    <p class="hero-meta">Gratuit · iOS · Créée par un IDEL remplaçant, pour les IDEL remplaçants</p>
+    <p class="hero-meta">Gratuit · iOS et Android · Créée par un paramédical remplaçant qui comprend les problèmes de ses pairs</p>
   </div>
 </section>
 

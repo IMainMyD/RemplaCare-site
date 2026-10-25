@@ -1,6 +1,15 @@
 {
   "cleanUrls": true,
   "redirects": [
-    { "source": "/beta", "destination": "/", "permanent": true }
+    {
+      "source": "/beta",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/landing",
+      "destination": "/",
+      "permanent": true
+    }
   ]
 }

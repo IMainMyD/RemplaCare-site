@@ -10,7 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  
   :root{
     --navy:#1C324A;
     --navy-deep:#15263A;
@@ -23,11 +22,6 @@
     --muted:#5A6B7B;
     --line:#E4E8EC;
     --radius:16px;
-    .nav-right{display:flex;align-items:center;gap:18px}
-.nav-link{color:rgba(255,255,255,.8);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
-.nav-link:hover{color:#fff}
-@media(max-width:480px){.nav-link{display:none}}
-
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -38,7 +32,7 @@
   }
   .wrap{max-width:1040px;margin:0 auto;padding:0 24px}
   .narrow{max-width:720px;margin:0 auto}
- 
+
   /* ── Type ─────────────────────────────── */
   h1,h2,h3{font-family:'Fraunces',Georgia,serif;color:var(--navy);line-height:1.15;letter-spacing:-.01em}
   h1{font-size:clamp(34px,5.5vw,54px);font-weight:700}
@@ -50,18 +44,24 @@
   }
   .hero .eyebrow, .cta-band .eyebrow{color:#A9CDBD}
   .lead{font-size:19px;color:var(--muted);line-height:1.6}
- 
+
   /* ── Nav ──────────────────────────────── */
- <nav>
-  <div class="wrap">
-    <a class="brand" href="/">rempl<em>a</em> care</a>
-    <div class="nav-right">
-      <a class="nav-link" href="/simulateur.html">Simulateur</a>
-      <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
-    </div>
-  </div>
-</nav>
- 
+  nav{
+    position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
+    backdrop-filter:blur(8px);padding:22px 0;
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:25px;color:#fff;text-decoration:none;white-space:nowrap}
+  .brand em{color:var(--sage);font-style:normal}
+  .nav-right{display:flex;align-items:center;gap:18px}
+  .nav-link{color:rgba(255,255,255,.8);text-decoration:none;font-weight:600;font-size:17px;white-space:nowrap}
+  .nav-link:hover{color:#fff}
+  .nav-cta{
+    background:var(--sage-dark);color:#fff;text-decoration:none;font-weight:600;font-size:17px;
+    padding:12px 22px;border-radius:22px;white-space:nowrap;transition:background .2s;
+  }
+  .nav-cta:hover{background:#3F6354}
+
   /* ── Hero ─────────────────────────────── */
   .hero{background:var(--navy);color:#fff;padding:72px 0 88px;overflow:hidden}
   .hero h1{color:#fff;margin-bottom:20px}
@@ -79,7 +79,7 @@
   .btn-ghost{color:#fff;border:1px solid rgba(255,255,255,.3);padding:15px 28px}
   .btn-ghost:hover{border-color:rgba(255,255,255,.7)}
   .hero-meta{font-size:13.5px;color:rgba(255,255,255,.72);margin-top:16px}
- 
+
   /* ── Signature : le calendrier vivant ── */
   .cal-card{
     background:#fff;border-radius:22px;padding:22px 20px 24px;
@@ -107,11 +107,11 @@
   .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
   .dot.work{background:var(--sage)}
   .dot.off{background:#E9EDF0;border:1px solid var(--line)}
- 
+
   /* ── Sections ─────────────────────────── */
   section{padding:88px 0}
   .section-head{text-align:center;max-width:640px;margin:0 auto 52px}
- 
+
   /* Problème */
   .problem{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .pain-list{display:grid;gap:2px;background:var(--line);border-radius:var(--radius);overflow:hidden}
@@ -128,7 +128,7 @@
     text-align:center;margin-top:36px;font-size:19px;color:var(--navy);
     font-family:'Fraunces',serif;font-weight:600;
   }
- 
+
   /* Valeur */
   .values{display:grid;grid-template-columns:1fr;gap:22px}
   .value{
@@ -144,13 +144,13 @@
     display:inline-block;margin-top:16px;font-size:13px;font-weight:600;
     color:var(--navy);background:#EAF2EE;padding:6px 12px;border-radius:20px;
   }
- 
+
   /* CTA bandeau */
   .cta-band{background:var(--navy);color:#fff;text-align:center;padding:72px 0}
   .cta-band h2{color:#fff}
   .cta-band p{color:var(--powder);margin-bottom:30px;font-size:18px}
   .cta-band .hero-meta{color:rgba(255,255,255,.5)}
- 
+
   /* Founder */
   .founder{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .founder-inner{display:grid;grid-template-columns:1fr;gap:32px;align-items:start}
@@ -164,7 +164,7 @@
     font-size:14px;color:var(--navy);font-weight:600;
   }
   .founder-sig span{display:block;font-weight:400;color:var(--muted);font-size:13.5px;margin-top:2px}
- 
+
   /* Témoignages */
   .quotes{display:grid;grid-template-columns:1fr;gap:20px}
   .quote{
@@ -184,7 +184,7 @@
     background:#EEF3FB;border-radius:12px;padding:16px 20px;max-width:640px;
   }
   .beta-note a{color:var(--sage-dark);font-weight:600}
- 
+
   /* FAQ */
   .faq{max-width:720px;margin:0 auto}
   details{
@@ -199,7 +199,7 @@
   summary::after{content:'+';font-size:22px;color:var(--sage);font-weight:400;line-height:1}
   details[open] summary::after{content:'−'}
   details p{padding:0 22px 20px;color:var(--muted);font-size:15.5px}
- 
+
   /* Avant / Après */
   .ba-list{display:grid;gap:16px}
   .ba{display:grid;grid-template-columns:1fr;gap:2px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
@@ -213,24 +213,27 @@
   .ba-before span{color:#6E7B87}
   .ba-after span{color:var(--sage-dark)}
   @media (min-width:720px){ .ba{grid-template-columns:1fr 1fr} }
- 
+
   /* Footer */
   footer{background:var(--navy-deep);color:rgba(255,255,255,.55);padding:44px 0;text-align:center;font-size:14px}
   footer a{color:rgba(255,255,255,.75);text-decoration:none;margin:0 10px}
   footer a:hover{color:#fff}
   .footer-brand{font-family:'Fraunces',serif;font-weight:700;font-size:20px;color:#fff;margin-bottom:14px}
   .footer-brand em{color:var(--sage);font-style:normal}
- 
+
   /* Reveal */
   .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
   .reveal.in{opacity:1;transform:none}
- 
+
   @media (min-width:860px){
     .hero{padding:96px 0 110px}
     .hero-grid{grid-template-columns:1.05fr .95fr;gap:60px}
     .values{grid-template-columns:repeat(3,1fr)}
     .quotes{grid-template-columns:repeat(3,1fr)}
     .founder-inner{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .nav-link{display:none}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
@@ -240,14 +243,18 @@
 </style>
 </head>
 <body>
- 
+
 <nav>
   <div class="wrap">
     <a class="brand" href="/">rempl<em>a</em> care</a>
-    <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
+    <div class="nav-right">
+      <a class="nav-link" href="/simulateur.html">Simulateur</a>
+      <a class="nav-link" href="/ordonnance.html">Ordonnance</a>
+      <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
+    </div>
   </div>
 </nav>
- 
+
 <!-- ─────────── HERO ─────────── -->
 <header class="hero">
   <div class="wrap hero-grid">
@@ -265,7 +272,7 @@
       </div>
       <p class="hero-meta">Gratuit · iOS · Créée par un infirmier libéral remplaçant</p>
     </div>
- 
+
     <!-- Signature : le calendrier interactif — touche les jours, le CA bouge -->
     <div class="cal-card">
       <div class="cal-top">
@@ -287,7 +294,7 @@
     </div>
   </div>
 </header>
- 
+
 <!-- ─────────── PROBLÈME ─────────── -->
 <section class="problem">
   <div class="wrap narrow">
@@ -295,7 +302,7 @@
       <h2>Tu remplaces. Mais tu pilotes ?</h2>
       <p class="lead">Quatre questions simples. Si tu mets plus de dix secondes à répondre, c'est que ton planning te coûte quelque chose.</p>
     </div>
- 
+
     <div class="pain-list reveal">
       <div class="pain">
         <p class="pain-q">« Combien j'ai gagné, ce mois-ci, rétrocessions déduites ? »</p>
@@ -314,20 +321,20 @@
         <span class="pain-cost">Tu dis oui, puis tu regrettes</span>
       </div>
     </div>
- 
+
     <p class="problem-close reveal">
       Un remplaçant qui ne voit pas son planning<br>ne choisit pas ses journées. Il les subit.
     </p>
   </div>
 </section>
- 
+
 <!-- ─────────── AVANT / APRÈS ─────────── -->
 <section>
   <div class="wrap narrow">
     <div class="section-head reveal">
       <h2>Il y a un avant et un après</h2>
     </div>
- 
+
     <div class="ba-list reveal">
       <div class="ba">
         <div class="ba-before"><span>Avant</span>Un onglet Excel par cabinet, des formules qui cassent, et une soirée par mois à tout réconcilier.</div>
@@ -344,14 +351,14 @@
     </div>
   </div>
 </section>
- 
+
 <!-- ─────────── VALEUR ─────────── -->
 <section id="valeur">
   <div class="wrap">
     <div class="section-head reveal">
       <h2>Trois minutes par semaine.<br>Le reste, tu le récupères.</h2>
     </div>
- 
+
     <div class="values">
       <div class="value reveal">
         <span class="value-num">Ton temps</span>
@@ -363,7 +370,7 @@
         </p>
         <span class="gain">≈ 2 h récupérées par mois</span>
       </div>
- 
+
       <div class="value reveal">
         <span class="value-num">Ton argent</span>
         <h3>Ton CA, en temps réel</h3>
@@ -374,7 +381,7 @@
         </p>
         <span class="gain">Zéro surprise en fin d'année</span>
       </div>
- 
+
       <div class="value reveal">
         <span class="value-num">Ta liberté</span>
         <h3>Dire non, en connaissance de cause</h3>
@@ -388,7 +395,7 @@
     </div>
   </div>
 </section>
- 
+
 <!-- ─────────── CTA 1 ─────────── -->
 <section class="cta-band">
   <div class="wrap narrow reveal">
@@ -398,7 +405,7 @@
     <p class="hero-meta">Version bêta iOS · 2 minutes d'installation · Aucune carte bancaire</p>
   </div>
 </section>
- 
+
 <!-- ─────────── FOUNDER ─────────── -->
 <section class="founder">
   <div class="wrap narrow founder-inner reveal">
@@ -410,39 +417,37 @@
       </p>
       <p>
         Aucun outil n'était fait pour nous. Les logiciels de cabinet gèrent les patients,
-        pas notre activité. Les applis de compta se contente de déduire, mais aucun moyen
-        de prédire.
+        pas notre activité. Les applis de compta se contentent de déduire, sans jamais
+        permettre de prédire.
       </p>
       <p>
         Avec ma compagne, j'ai construit celle que je voulais utiliser : un calendrier qui parle
-        aux remplaçants, avec un suivi de CA, qui permets de s'organiser en fonction de soit 
+        aux remplaçants, avec un suivi de CA, qui permet de s'organiser en fonction de soi
         et non en fonction des autres.
-        
       </p>
       <p>
-        RemplaCare est en bêta. Chaque retour est le bienvenue !
+        RemplaCare est en bêta. Chaque retour est le bienvenu !
       </p>
       <div class="founder-sig">
-        Samuel, Infirmier à Lyon
-       
-       </div>
+        Samuel<span>Infirmier libéral remplaçant · Lyon</span>
+      </div>
     </div>
   </div>
 </section>
- 
--->
+
+<!-- ─────────── TÉMOIGNAGES ─────────── -->
 <section id="temoignages">
   <div class="wrap">
     <div class="section-head reveal">
       <h2>Les premiers retours</h2>
-       <p class="lead">L'app vient d'ouvrir en bêta. Voici ce que disent les remplaçants qui l'utilisent déjà.</p>
+      <p class="lead">L'app vient d'ouvrir en bêta. Voici ce que disent les remplaçants qui l'utilisent déjà.</p>
     </div>
- 
+
     <div class="quotes reveal">
       <div class="quote">
-        <p>« Jusqu'à présent je suivait mon CA sur un Excel. Je rentrais chaque jour prévu avec le CA associé. C'était fastidieux mais nécessaire pour pouvoir m'organiser et voir venir. Ce qui me prenait des heures auparavant peut maintenant se faire en quelque minutes ! »</p>
+        <p>« Jusqu'à présent je suivais mon CA sur un Excel. Je rentrais chaque jour prévu avec le CA associé. C'était fastidieux mais nécessaire pour pouvoir m'organiser et voir venir. Ce qui me prenait des heures auparavant peut maintenant se faire en quelques minutes ! »</p>
         <div class="quote-who">
-          <div class="avatar"></div>
+          <div class="avatar">A</div>
           <div>
             <strong>Andrea</strong>
             <em>Infirmière remplaçante · Paris</em>
@@ -451,24 +456,22 @@
       </div>
 
       <div class="quote">
-        <p>« Lorsque j'avais besoin de plus de revenus, j'acceptais n'importe quels rempla, quitte à travailler des semaines sans pause. Résultat ? Je n'avait plus de temps libre, un meilleur revenu, mais une hausse de cotisation qui à rendus mes efforts inutiles... D'où l'importance de piloter son activité meme en temps que remplaçant.  »</p>
+        <p>« Lorsque j'avais besoin de plus de revenus, j'acceptais n'importe quel rempla, quitte à travailler des semaines sans pause. Résultat ? Plus de temps libre, un meilleur revenu, mais une hausse de cotisations qui a rendu mes efforts inutiles… D'où l'importance de piloter son activité, même en tant que remplaçant. »</p>
         <div class="quote-who">
-          <div class="avatar"></div>
+          <div class="avatar">M</div>
           <div>
             <strong>Maxime</strong>
             <em>IDEL remplaçant · Marseille</em>
           </div>
         </div>
       </div>
-    </div>
 
-     <div class="quote">
-        <p>« Etant remplaçant dans 4 cabinets, il a toujours été difficile pour moi de suivre mon activité et mon planning. 
-          Maintenant je peux suivre exactement le CA touché par cabinet, et surtout organisé ma vie de famille en fonction ! »</p>
+      <div class="quote">
+        <p>« Étant remplaçant dans 4 cabinets, il a toujours été difficile pour moi de suivre mon activité et mon planning. Maintenant je peux suivre exactement le CA touché par cabinet, et surtout organiser ma vie de famille en fonction ! »</p>
         <div class="quote-who">
-          <div class="avatar">??</div>
+          <div class="avatar">N</div>
           <div>
-            <strong> Nicolas</strong>
+            <strong>Nicolas</strong>
             <em>IDEL remplaçant · Dijon</em>
           </div>
         </div>
@@ -548,6 +551,7 @@
     <div class="footer-brand">rempl<em>a</em> care</div>
     <div>
       <a href="#telecharger" data-download>Télécharger</a>
+      <a href="/simulateur.html">Simulateur</a>
       <a href="/feedback">Contact</a>
       <a href="/cgu">CGU</a>
       <a href="/confidentialite">Confidentialité</a>

@@ -7,7 +7,7 @@
 <meta name="description" content="Estime tes cotisations URSSAF et CARPIMKO et ton net d'infirmier libéral remplaçant, à partir de ton CA journalier, mensuel ou annuel. Calculs fournis par le moteur officiel URSSAF.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --navy:#1C324A; --sage:#77A895; --sage-dark:#4E7A67; --sage-soft:#E3EFEC; --powder:#BFD6F6;
@@ -68,41 +68,39 @@
   @keyframes r{to{transform:rotate(360deg)}}
   @media(max-width:420px){.grid{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:36px}}
 
-  /* ── Menu de navigation (identique à la landing) ──────────────────────── */
-  .nav{position:sticky;top:0;z-index:50;padding:14px 20px;
-       background:rgba(28,50,74,.96);backdrop-filter:blur(8px);
-       -webkit-backdrop-filter:blur(8px)}
-  .nav-inner{max-width:680px;margin:0 auto;display:flex;align-items:center;
-             justify-content:space-between;gap:16px}
-  .brand{font-family:var(--title);font-weight:700;font-size:20px;color:#fff;
-         text-decoration:none;white-space:nowrap}
-  .brand em{color:var(--sage);font-style:normal}
-  .nav-links{display:flex;align-items:center;gap:8px}
-  .nav-links a.link{font-size:14px;font-weight:500;color:rgba(255,255,255,.75);
-                    text-decoration:none;padding:8px 10px;border-radius:999px}
-  .nav-links a.link:hover{color:#fff}
-  .nav-cta{font-size:14px;font-weight:600;color:#fff;background:var(--sage-dark);
-           text-decoration:none;padding:10px 18px;border-radius:22px;white-space:nowrap;
-           transition:background .2s}
-  .nav-cta:hover{background:#3F6354}
-  @media(max-width:420px){
-    .nav{padding:12px 16px}
-    .brand{font-size:18px}
-    .nav-links a.link{display:none}
-  }
+
+  /* ── Bandeau de navigation (identique à l'accueil) ───────────────────── */
+  .site-nav{position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:22px 0}
+  .site-nav-inner{max-width:1040px;margin:0 auto;padding:0 24px;display:flex;
+    align-items:center;justify-content:space-between;gap:16px}
+  .site-nav .brand{font-family:'Fraunces',Georgia,serif;font-weight:700;font-size:25px;
+    color:#fff;text-decoration:none;white-space:nowrap}
+  .site-nav .brand em{color:#77A895;font-style:normal}
+  .site-nav .nav-right{display:flex;align-items:center;gap:18px}
+  .site-nav .nav-link{font-family:'Jost',sans-serif;color:rgba(255,255,255,.8);text-decoration:none;
+    font-weight:600;font-size:17px;white-space:nowrap}
+  .site-nav .nav-link:hover,.site-nav .nav-link[aria-current=page]{color:#fff}
+  .site-nav .nav-cta{font-family:'Jost',sans-serif;background:#4E7A67;color:#fff;text-decoration:none;
+    font-weight:600;font-size:17px;line-height:1.65;padding:12px 22px;border-radius:22px;
+    white-space:nowrap;transition:background .2s}
+  .site-nav .nav-cta:hover{background:#3F6354}
+  @media (max-width:640px){.site-nav .nav-link{display:none}}
+  @media print{.site-nav{display:none !important}}
 </style>
 </head>
 <body>
 
-<header class="nav">
-  <div class="nav-inner">
+<nav class="site-nav" aria-label="Navigation principale">
+  <div class="site-nav-inner">
     <a class="brand" href="/">rempl<em>a</em> care</a>
-    <nav class="nav-links" aria-label="Navigation principale">
-      <a class="link" href="/">Accueil</a>
-      <a class="nav-cta" href="#telecharger" data-download>Télécharger l'app</a>
-    </nav>
+    <div class="nav-right">
+      <a class="nav-link" href="/simulateur.html" aria-current="page">Simulateur</a>
+      <a class="nav-link" href="/ordonnance.html">Ordonnance</a>
+      <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
+    </div>
   </div>
-</header>
+</nav>
 
 <div class="wrap">
 

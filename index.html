@@ -48,17 +48,17 @@
   /* ── Nav ──────────────────────────────── */
   nav{
     position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
-    backdrop-filter:blur(8px);padding:16px 0;
+    backdrop-filter:blur(8px);padding:22px 0;
   }
   nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px}
-  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:22px;color:#fff;text-decoration:none;white-space:nowrap}
+  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:25px;color:#fff;text-decoration:none;white-space:nowrap}
   .brand em{color:var(--sage);font-style:normal}
   .nav-right{display:flex;align-items:center;gap:18px}
-  .nav-link{color:rgba(255,255,255,.8);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+  .nav-link{color:rgba(255,255,255,.8);text-decoration:none;font-weight:600;font-size:17px;white-space:nowrap}
   .nav-link:hover{color:#fff}
   .nav-cta{
-    background:var(--sage-dark);color:#fff;text-decoration:none;font-weight:600;font-size:14px;
-    padding:10px 20px;border-radius:22px;white-space:nowrap;transition:background .2s;
+    background:var(--sage-dark);color:#fff;text-decoration:none;font-weight:600;font-size:17px;
+    padding:12px 22px;border-radius:22px;white-space:nowrap;transition:background .2s;
   }
   .nav-cta:hover{background:#3F6354}
 
@@ -232,7 +232,7 @@
     .quotes{grid-template-columns:repeat(3,1fr)}
     .founder-inner{grid-template-columns:1fr}
   }
-  @media (max-width:420px){
+  @media (max-width:640px){
     .nav-link{display:none}
   }
   @media (prefers-reduced-motion:reduce){
@@ -249,6 +249,7 @@
     <a class="brand" href="/">rempl<em>a</em> care</a>
     <div class="nav-right">
       <a class="nav-link" href="/simulateur.html">Simulateur</a>
+      <a class="nav-link" href="/ordonnance.html">Ordonnance</a>
       <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
     </div>
   </div>

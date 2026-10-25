@@ -57,6 +57,7 @@
   .hero .over{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--powder);margin:0 0 6px}
   .hero .amount{font-family:var(--title);font-size:46px;line-height:1;margin:0}
   .hero .note{font-size:13px;color:var(--powder);margin:10px 0 0}
+  .hero .coussin{font-size:16px;font-weight:600;margin:10px 0 0}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
   .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);padding:16px}
   .tile .k{font-size:12px;color:var(--text-2);margin:0 0 4px}
@@ -320,6 +321,7 @@
     <div class="hero">
       <p class="over">À mettre de côté chaque mois</p>
       <p class="amount" id="r-prov">—</p>
+      <p class="coussin hidden" id="r-coussin"></p>
       <p class="note" id="r-prov-note"></p>
     </div>
 
@@ -677,10 +679,21 @@
     var nomCaisse = d.caisse;
     var mois0 = e.mois[0].mois;
 
-    $("r-prov").textContent = euros(e.provisionRecommandee);
-    $("r-prov-note").textContent = "sur un compte dédié, à partir de " + nomMois(mois0, true) +
-      " : de quoi payer l'Urssaf" + (nomCaisse === "CIPAV" ? " (qui encaisse aussi la CIPAV)" : ", la " + nomCaisse) +
-      " et l'impôt pendant 3 ans sans jamais être à découvert.";
+    // Rythme + coussin : la provision seule supposait un compte vide au départ
+    // et gonflait le chiffre en trimestriel (3 mois d'Urssaf d'un coup en
+    // février), alors que l'année ne coûte pas plus.
+    // Repli sur la provision si la fonction déployée est antérieure au rythme.
+    if (e.rythmeMensuel == null) { e.rythmeMensuel = e.provisionRecommandee; e.coussinDepart = 0; }
+    var aPayer = "l'Urssaf" + (nomCaisse === "CIPAV" ? " (qui encaisse aussi la CIPAV)" : ", la " + nomCaisse) + " et l'impôt";
+    $("r-prov").textContent = euros(e.rythmeMensuel);
+    $("r-coussin").textContent = "+ " + euros(e.coussinDepart) + " d'avance au départ, une seule fois";
+    $("r-coussin").classList.toggle("hidden", !(e.coussinDepart > 0));
+    $("r-prov-note").textContent = e.coussinDepart > 0
+      ? "Sur un compte dédié dès " + nomMois(mois0, true) + " : certains prélèvements tombent avant que " +
+        "tu aies eu le temps de les mettre de côté. Ensuite, le versement mensuel suffit à payer " + aPayer +
+        " pendant 3 ans sans jamais être à découvert."
+      : "sur un compte dédié, à partir de " + nomMois(mois0, true) + " : de quoi payer " + aPayer +
+        " pendant 3 ans sans jamais être à découvert.";
 
     // Année pleine de référence : la première année simulée qui n'est pas
     // l'année d'installation (celle-ci est incomplète).
@@ -745,7 +758,7 @@
     var pic = e.mois.filter(function(l){ return e.moisCritiques.indexOf(l.mois) >= 0; })
       .reduce(function(a, l){ return l.total > a ? l.total : a; }, 0);
     box.innerHTML = "<b>Mois à surveiller : " + plages(e.moisCritiques).join(", ") + ".</b> Jusqu'à " +
-      euros(pic) + " prélevés, plus d'une fois et demie ta provision. Ce sont les régularisations " +
+      euros(pic) + " prélevés en un mois, bien plus qu'un mois ordinaire. Ce sont les régularisations " +
       "et les rattrapages d'impôt : la provision mensuelle sert à les avoir de côté le moment venu.";
     box.classList.remove("hidden");
   }
@@ -780,7 +793,7 @@
 
     var hauts = e.mois.map(function(l){ return s.reduce(function(a, x){ return a + Math.max(0, l[x.cle]); }, 0); });
     var bas = e.mois.map(function(l){ return s.reduce(function(a, x){ return a + Math.min(0, l[x.cle]); }, 0); });
-    var maxV = Math.max(e.provisionRecommandee, Math.max.apply(null, hauts));
+    var maxV = Math.max(e.rythmeMensuel, Math.max.apply(null, hauts));
     var minV = Math.min(0, Math.min.apply(null, bas));
     var pas = pasPropre((maxV - minV) / 4);
     var yMax = Math.ceil(maxV / pas) * pas, yMin = Math.floor(minV / pas) * pas;
@@ -822,7 +835,7 @@
     });
     svg.push('<line x1="' + g.gauche + '" x2="' + (W - g.droite) + '" y1="' + y(0) + '" y2="' + y(0) +
       '" stroke="var(--border)" stroke-width="1"/>');
-    var yp = y(e.provisionRecommandee);
+    var yp = y(e.rythmeMensuel);
     svg.push('<line x1="' + g.gauche + '" x2="' + (W - g.droite) + '" y1="' + yp + '" y2="' + yp +
       '" stroke="var(--text)" stroke-width="2" stroke-linecap="round"/>');
     svg.push("</svg>");

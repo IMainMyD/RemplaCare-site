@@ -41,6 +41,9 @@
     color:var(--text-2);background:var(--bg);border:1px solid var(--border);border-radius:999px;cursor:pointer}
   .seg button[aria-pressed=true]{background:var(--sage-soft);border-color:var(--sage);color:var(--text)}
   .field{margin-bottom:18px}
+  .foyer{border:0;border-top:1px solid var(--border);margin:6px 0 18px;padding:18px 0 0}
+  .foyer .row .field{margin-bottom:12px}
+  .foyer legend{font-family:var(--title);font-weight:600;font-size:17px;padding:0 8px 0 0}
   .field:last-child{margin-bottom:0}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .cta{width:100%;padding:15px;margin-top:4px;font-family:var(--body);font-size:16px;font-weight:500;
@@ -282,6 +285,31 @@
       </div>
     </div>
 
+    <fieldset class="foyer">
+      <legend>Ton foyer fiscal</legend>
+      <p class="hint" style="margin:0 0 14px">Ton revenu libéral est imposé au taux de ton foyer :
+         avec un conjoint qui travaille, l'impôt peut être bien plus élevé que pour une personne seule.</p>
+      <div class="field">
+        <span class="label" id="lbl-situation">Tu déclares tes impôts&nbsp;:</span>
+        <div class="seg" role="group" aria-labelledby="lbl-situation" data-groupe="situation">
+          <button type="button" data-v="celibataire" aria-pressed="true">Seul·e</button>
+          <button type="button" data-v="couple" aria-pressed="false">En couple (marié·e, pacsé·e)</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label for="enfants">Enfants à charge</label>
+          <select id="enfants"></select>
+        </div>
+        <div class="field" id="f-autres">
+          <label for="autres">Autres revenus du foyer, par an</label>
+          <input type="number" id="autres" min="0" step="500" inputmode="numeric" placeholder="0">
+        </div>
+      </div>
+      <p class="hint" style="margin:0">Autres revenus : salaires nets imposables de ton conjoint, par
+         exemple (avant l'abattement de 10 %, appliqué ici). Laisse 0 si tu es seul·e à gagner un revenu.</p>
+    </fieldset>
+
     <button class="cta" id="go">Voir mon calendrier</button>
     <div class="recap" id="recap"></div>
   </div>
@@ -314,7 +342,7 @@
       <div class="tile">
         <p class="k">Impôt estimé par an</p>
         <p class="v" id="r-impot">—</p>
-        <p class="d">seul·e dans le foyer, 1 part</p>
+        <p class="d" id="r-impot-d"></p>
       </div>
     </div>
 
@@ -344,8 +372,9 @@
       <li>Les montants dus viennent du <b>moteur officiel URSSAF</b>. Le calendrier des prélèvements
           est calé sur de vrais avis d'appel Urssaf et CARPIMKO et sur le simulateur de la CARPIMKO ;
           les dates encore incertaines sont signalées.</li>
-      <li>L'<b>impôt</b> est estimé comme si ce revenu était le seul du foyer, pour 1 part : c'est
-          un majorant pour la plupart des foyers.</li>
+      <li>L'<b>impôt</b> affiché est la part de l'impôt de ton foyer due à ton activité : l'impôt du
+          foyer avec ton revenu libéral, moins celui qu'il paierait sans. Renseigne ta situation
+          familiale et les autres revenus du foyer pour qu'il soit juste.</li>
       <li>La <b>cotisation ordinale</b> n'est pas incluse — à ajouter dans tes charges.</li>
       <li>Les barèmes de l'année en cours sont appliqués aux 3 années simulées.</li>
       <li>Les montants sont <b>indicatifs</b>. Ils ne se substituent pas à tes avis d'appel ni à
@@ -371,7 +400,7 @@
   var $ = function(id){ return document.getElementById(id); };
   var MOIS_COURTS = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
   var MOIS_LONGS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
-  var etat = { periode: "jour", paiement: "mensuelle" };
+  var etat = { periode: "jour", paiement: "mensuelle", situation: "celibataire" };
   var dernier = null; // dernière réponse, pour redessiner le graphique au redimensionnement
 
   // ── Listes et valeurs par défaut ───────────────────────────────────────────
@@ -379,6 +408,7 @@
   for (var j = 1; j <= 31; j++) sJours.add(new Option(j + (j === 1 ? " jour" : " jours"), j, false, j === 18));
   var sMois = $("mois");
   for (var m = 1; m <= 12; m++) sMois.add(new Option(m + " mois", m, false, m === 11));
+  for (var en = 0; en <= 6; en++) $("enfants").add(new Option(en === 0 ? "Aucun" : String(en), en, false, en === 0));
   var maintenant = new Date();
   $("annee").textContent = maintenant.getFullYear();
 
@@ -531,6 +561,16 @@
     return v;
   }
 
+  function foyer(){
+    var autres = parseFloat($("autres").value);
+    return {
+      situation: etat.situation,
+      enfants: parseInt($("enfants").value, 10) || 0,
+      // Salaires : le moteur attend le revenu après l'abattement de 10 %.
+      autresRevenus: isFinite(autres) && autres > 0 ? Math.round(autres * 0.9) : 0
+    };
+  }
+
   function debutActivite(){
     var v = dp.valeur, z = function(n){ return (n < 10 ? "0" : "") + n; };
     return v.a + "-" + z(v.m + 1) + "-" + z(v.j);
@@ -602,7 +642,10 @@
         anneeDebutSimulation: Math.max(maintenant.getFullYear(), anneeDebut),
         caAnnuel: Math.round(ca),
         chargesAnnuelles: Math.round(charges),
-        periodiciteUrssaf: etat.paiement
+        periodiciteUrssaf: etat.paiement,
+        // Toujours envoyé : « seul·e, 0 enfant, 0 € » donne le même impôt que le
+        // calcul par défaut, et l'avertissement de la réponse reste exact.
+        foyer: foyer()
       })
     })
     .then(function(r){
@@ -612,7 +655,7 @@
       });
     })
     .then(function(data){
-      dernier = { data: data, ca: Math.round(ca), charges: Math.round(charges), anneeDebut: anneeDebut, caisse: caisse() };
+      dernier = { data: data, ca: Math.round(ca), charges: Math.round(charges), anneeDebut: anneeDebut, caisse: caisse(), foyer: foyer() };
       afficher(dernier);
     })
     .catch(function(e){
@@ -649,6 +692,10 @@
     $("r-cotis").textContent = euros(pleine.cotisations);
     $("r-cotis-d").textContent = "dues au titre de " + pleine.annee;
     $("r-impot").textContent = euros(pleine.impot);
+    var f = d.foyer;
+    $("r-impot-d").textContent = f.situation === "celibataire" && !f.enfants && !f.autresRevenus
+      ? "personne seule, sans autre revenu"
+      : "part de l'impôt du foyer due à ton activité";
 
     var max = e.mois.reduce(function(a, l){ return l.total > a.total ? l : a; }, e.mois[0]);
     $("r-max").textContent = euros(max.total);

@@ -134,6 +134,19 @@
     transition:border-color .15s,color .15s;
   }
   .ligne-sup:hover{border-color:var(--navy);color:var(--navy)}
+  .ligne-ns{
+    flex:0 0 auto;height:36px;padding:0 12px;border-radius:999px;cursor:pointer;
+    border:1.5px solid var(--border);background:var(--surface);
+    font-family:var(--body);font-size:13px;font-weight:500;color:var(--text-2);
+    transition:all .15s;
+  }
+  .ligne-ns[aria-pressed=true]{background:var(--sage-soft);border-color:var(--sage);color:var(--navy)}
+  .aide{font-size:13px;color:var(--text-2);margin:6px 0 0}
+
+  /* ══ MÉMORISATION ══ */
+  .memo{display:flex;align-items:flex-start;gap:10px;font-weight:400;font-size:14px;cursor:pointer;margin:0}
+  .memo input{width:18px;height:18px;margin:2px 0 0;accent-color:var(--sage-dark);flex:0 0 auto}
+  .memo small{display:block;color:var(--text-2);font-size:13px}
   .suggestions{
     display:flex;flex-direction:column;gap:4px;margin-top:4px;
   }
@@ -146,6 +159,7 @@
   .suggestions button[aria-selected=true]{background:#CFE3DD;border-color:var(--navy)}
 
   /* ══ SIGNATURE PAD ══ */
+  .partage-msg{font-size:13px;color:var(--text-2);text-align:center;margin:8px 0 0;min-height:1em}
   #sigPad{
     width:100%;height:120px;background:var(--bg);
     border:1.5px dashed var(--border);border-radius:var(--radius-m);
@@ -208,6 +222,7 @@
   .doc-case{display:flex;align-items:center;font-size:12pt;margin-bottom:2.5mm}
   .doc-case:last-child{margin-bottom:0}
   .doc-case-lib{flex:0 0 8.5mm}
+  .doc-ren-nb{margin-left:2mm;font-size:11pt;white-space:nowrap}
   .doc-carre{width:6.9mm;height:6.9mm;border:.5pt solid var(--doc-texte);display:inline-flex;align-items:center;justify-content:center;font-size:12pt;font-weight:500;flex:0 0 auto}
   .doc-duree{display:flex;align-items:baseline;gap:2mm;margin-top:2.5mm}
   .doc-duree .doc-val{flex:0 0 24mm;min-height:5mm}
@@ -333,6 +348,10 @@
         <input type="text" id="infCoord" data-cible="vInfCoord" autocomplete="off"></div>
       <div class="field"><label for="infRpps">Numéro RPPS</label>
         <input type="text" id="infRpps" data-cible="vInfRpps" inputmode="numeric" autocomplete="off"></div>
+      <div class="field"><label class="memo"><input type="checkbox" id="memo" checked>
+        <span>Mémoriser mes informations et ma signature sur cet appareil
+          <small>Rien n'est envoyé : tout reste dans ce navigateur. Les données patient ne sont jamais mémorisées.</small></span>
+      </label></div>
     </div>
 
     <div class="card">
@@ -353,11 +372,13 @@
     <div class="card">
       <h2>Prescription</h2>
       <div class="field"><label>Contenu de l'ordonnance</label>
-        <div id="lignes"></div></div>
-      <div class="field"><label>Renouvelable</label>
+        <div id="lignes"></div>
+        <p class="aide">NS : non substituable — le pharmacien ne pourra pas remplacer le produit.</p></div>
+      <div class="field"><label>Renouvellement</label>
         <div class="seg" id="segRenouv">
-          <button type="button" data-v="oui" aria-pressed="false">Oui</button>
-          <button type="button" data-v="non" aria-pressed="false">Non</button>
+          <button type="button" data-v="0" aria-pressed="false">Non</button>
+          <button type="button" data-v="1" aria-pressed="false">1 fois</button>
+          <button type="button" data-v="2" aria-pressed="false">2 fois</button>
         </div></div>
       <div class="field"><label for="duree">Durée</label>
         <input type="text" id="duree" data-cible="vDuree" autocomplete="off"></div>
@@ -381,8 +402,9 @@
     <div style="margin-top:8px">
       <button type="button" class="btn" id="btnExport">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Exporter en PDF
+        <span id="btnExportLib">Partager le PDF</span>
       </button>
+      <p class="partage-msg" id="partageMsg" role="status"></p>
     </div>
 
   </div>
@@ -425,7 +447,7 @@
         <div class="carte c-ren">
           <p class="doc-bloc-titre">Renouvelable</p>
           <div class="doc-cases">
-            <span class="doc-case"><span class="doc-case-lib">oui</span><span class="doc-carre" id="vRenOui"></span></span>
+            <span class="doc-case"><span class="doc-case-lib">oui</span><span class="doc-carre" id="vRenOui"></span><span class="doc-ren-nb" id="vRenNb"></span></span>
             <span class="doc-case"><span class="doc-case-lib">non</span><span class="doc-carre" id="vRenNon"></span></span>
           </div>
           <div class="doc-duree">
@@ -553,12 +575,14 @@ function chercher(q) {
 }
 
 /* ── PRESCRIPTION LINES ───────────────────────────────────────────────── */
-const lignes = ['']
+// Chaque ligne : { t: texte, ns: non substituable }
+const vide = () => ({ t: '', ns: false })
+const lignes = [vide()]
 let indexActif = -1, indexSurvol = -1
 
 function majDocument() {
-  const remplies = lignes.filter(l => l.trim())
-  $('vPresc').textContent = remplies.join('\n')
+  const remplies = lignes.filter(l => l.t.trim())
+  $('vPresc').textContent = remplies.map(l => l.ns ? l.t + ' — NS' : l.t).join('\n')
   const doc = $('doc')
   doc.classList.toggle('etendu', remplies.length > 6)
   doc.classList.toggle('plein', remplies.length >= 10)
@@ -575,20 +599,20 @@ function rendreLignes(focusIdx) {
   const hote = $('lignes')
   hote.innerHTML = ''
 
-  lignes.forEach((val, i) => {
+  lignes.forEach((ligne, i) => {
     const rangee = document.createElement('div')
     rangee.className = 'ligne'
 
     const champ = document.createElement('input')
     champ.type = 'text'
-    champ.value = val
+    champ.value = ligne.t
     champ.autocomplete = 'off'
     champ.placeholder = i === lignes.length - 1 ? 'Dispositif…' : ''
     // Mobile: larger touch target feel
     champ.style.fontSize = '16px'  // prevents iOS zoom
 
     champ.addEventListener('input', () => {
-      lignes[i] = champ.value
+      lignes[i].t = champ.value
       indexActif = i
       majDocument()
       suggerer(champ, i)
@@ -600,6 +624,19 @@ function rendreLignes(focusIdx) {
     rangee.appendChild(champ)
 
     if (lignes.length > 1 && i < lignes.length - 1) {
+      const ns = document.createElement('button')
+      ns.type = 'button'
+      ns.className = 'ligne-ns'
+      ns.textContent = 'NS'
+      ns.title = 'Non substituable'
+      ns.setAttribute('aria-pressed', String(ligne.ns))
+      ns.addEventListener('click', () => {
+        ligne.ns = !ligne.ns
+        ns.setAttribute('aria-pressed', String(ligne.ns))
+        majDocument()
+      })
+      rangee.appendChild(ns)
+
       const sup = document.createElement('button')
       sup.type = 'button'
       sup.className = 'ligne-sup'
@@ -629,10 +666,10 @@ function rendreLignes(focusIdx) {
 }
 
 function validerLigne(i, val) {
-  lignes[i] = val
+  lignes[i].t = val
   fermerSugg()
-  if (i === lignes.length - 1 || lignes[lignes.length - 1].trim()) {
-    lignes.splice(i + 1, 0, '')
+  if (i === lignes.length - 1 || lignes[lignes.length - 1].t.trim()) {
+    lignes.splice(i + 1, 0, vide())
     majDocument()
     rendreLignes(i + 1)
   } else {
@@ -685,20 +722,64 @@ function suggerer(champ, i) {
 
 rendreLignes(null)
 
-/* ── ALD / RENOUVELABLE ───────────────────────────────────────────────── */
-function segment(idSeg, idOui, idNon) {
+/* ── ALD / RENOUVELLEMENT ─────────────────────────────────────────────── */
+// Un second appui sur le choix actif le désélectionne.
+function segment(idSeg, onChange) {
   const seg = $(idSeg)
   let val = ''
   seg.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return
     val = val === b.dataset.v ? '' : b.dataset.v
     seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.v === val)))
-    $(idOui).textContent = val === 'oui' ? '✕' : ''
-    $(idNon).textContent = val === 'non' ? '✕' : ''
+    onChange(val)
   })
 }
-segment('segAld', 'vAldOui', 'vAldNon')
-segment('segRenouv', 'vRenOui', 'vRenNon')
+segment('segAld', v => {
+  $('vAldOui').textContent = v === 'oui' ? '✕' : ''
+  $('vAldNon').textContent = v === 'non' ? '✕' : ''
+})
+// 0 = non renouvelable ; 1 ou 2 = case « oui » cochée + nombre de fois.
+segment('segRenouv', v => {
+  $('vRenOui').textContent = v && v !== '0' ? '✕' : ''
+  $('vRenNon').textContent = v === '0' ? '✕' : ''
+  $('vRenNb').textContent = v && v !== '0' ? v + ' fois' : ''
+})
+
+/* ── PROFIL MÉMORISÉ ──────────────────────────────────────────────────────
+   Identité de l'infirmier·ère, lieu et signature, gardés dans ce navigateur
+   seulement. Les champs patient n'y sont jamais écrits. */
+const profil = (() => {
+  const CLE = 'remplacare.ordonnance.profil'
+  const CHAMPS = ['infNom', 'infCoord', 'infRpps', 'faitA']
+  const lire = () => { try { return JSON.parse(localStorage.getItem(CLE)) || {} } catch { return {} } }
+  const ecrire = d => { try { localStorage.setItem(CLE, JSON.stringify(d)) } catch {} }
+  const actif = () => $('memo').checked
+  const enregistrer = () => {
+    if (!actif()) return
+    const d = lire()
+    for (const id of CHAMPS) d[id] = $(id).value
+    ecrire(d)
+  }
+  const d = lire()
+  if (d.off) $('memo').checked = false
+  for (const id of CHAMPS) {
+    const el = $(id)
+    if (d[id] && !d.off) { el.value = d[id]; $(el.dataset.cible).textContent = d[id] }
+    el.addEventListener('input', enregistrer)
+  }
+  let sigCourante = d.off ? '' : (d.sig || '')
+  function signature(src) {
+    sigCourante = src
+    if (!actif()) return
+    const d = lire(); d.sig = src; ecrire(d)
+  }
+  // Décocher efface tout ce qui était mémorisé ; on garde seulement ce choix.
+  $('memo').addEventListener('change', () => {
+    if (actif()) { ecrire({}); enregistrer(); signature(sigCourante) }
+    else ecrire({ off: true })
+  })
+  return { lire: () => (actif() ? lire() : {}), signature }
+})()
 
 /* ── SIGNATURE PAD ────────────────────────────────────────────────────── */
 ;(function signature() {
@@ -719,17 +800,34 @@ segment('segRenouv', 'vRenOui', 'vRenNon')
   }
   const debut = e => { e.preventDefault(); dessine = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y) }
   const trace = e => { if (!dessine) return; e.preventDefault(); const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); vide = false }
+  const afficher = src => {
+    const cible = $('vSig'); cible.innerHTML = ''
+    if (src) { const img = document.createElement('img'); img.src = src; cible.appendChild(img) }
+  }
   const fin = () => {
     if (!dessine) return; dessine = false
-    const cible = $('vSig'); cible.innerHTML = ''
-    if (!vide) { const img = document.createElement('img'); img.src = cv.toDataURL(); cible.appendChild(img) }
+    const src = vide ? '' : cv.toDataURL()
+    afficher(src); profil.signature(src)
   }
+  // Signature mémorisée : redessinée dans le cadre une fois celui-ci dimensionné.
+  requestAnimationFrame(() => {
+    const src = profil.lire().sig
+    if (!src) return
+    const img = new Image()
+    img.onload = () => {
+      // Proportions conservées : le cadre n'a pas la même largeur sur téléphone et sur ordinateur.
+      const k = Math.min(cv.clientWidth / img.width, cv.clientHeight / img.height)
+      ctx.drawImage(img, 0, 0, img.width * k, img.height * k)
+      vide = false; afficher(src)
+    }
+    img.src = src
+  })
   for (const [ev, fn] of [
     ['mousedown',debut],['mousemove',trace],['mouseup',fin],['mouseleave',fin],
     ['touchstart',debut],['touchmove',trace],['touchend',fin]
   ]) cv.addEventListener(ev, fn, {passive:false})
 
-  $('sigClear').addEventListener('click', () => { ctx.clearRect(0,0,cv.width,cv.height); vide=true; $('vSig').innerHTML='' })
+  $('sigClear').addEventListener('click', () => { ctx.clearRect(0,0,cv.width,cv.height); vide=true; $('vSig').innerHTML=''; profil.signature('') })
 })()
 
 /* ── PRINT ────────────────────────────────────────────────────────────── */
@@ -744,8 +842,112 @@ function doPrint() {
     window.print()
   }
 }
-$('btnExport').addEventListener('click', doPrint)
 $('btnPrintTop').addEventListener('click', doPrint)
+
+/* ── PDF & PARTAGE ────────────────────────────────────────────────────────
+   Le document A4 est photographié (html2canvas) puis mis dans un PDF (jsPDF).
+   Sur mobile, le PDF part dans la feuille de partage (mail, SMS, WhatsApp…) ;
+   ailleurs, il est téléchargé. Les bibliothèques sont servies par le site et
+   préchargées après l'ouverture de la page. */
+const chargerLibs = (() => {
+  let p
+  const script = src => new Promise((ok, ko) => {
+    const el = document.createElement('script')
+    el.src = src; el.onload = ok; el.onerror = ko
+    document.head.appendChild(el)
+  })
+  return () => p || (p = Promise.all([
+    script('vendor/html2canvas-1.4.1.min.js'),
+    script('vendor/jspdf-2.5.1.umd.min.js'),
+  ]).catch(e => { p = null; throw e }))
+})()
+window.addEventListener('load', () => setTimeout(() => chargerLibs().catch(() => {}), 1000))
+
+const peutPartager = (() => {
+  try { return !!navigator.canShare && navigator.canShare({ files: [new File([''], 'o.pdf', { type: 'application/pdf' })] }) }
+  catch { return false }
+})()
+const LIB_BOUTON = peutPartager ? 'Partager le PDF' : 'Télécharger le PDF'
+$('btnExportLib').textContent = LIB_BOUTON
+
+function nomFichier() {
+  const patient = $('patNom').value.trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  const d = new Date(), jj = String(d.getDate()).padStart(2, '0'), mm = String(d.getMonth() + 1).padStart(2, '0')
+  return `ordonnance${patient ? '-' + patient : ''}-${d.getFullYear()}-${mm}-${jj}.pdf`
+}
+
+async function genererPdf() {
+  await chargerLibs()
+  // Sur mobile l'aperçu doit être affiché pour être photographié ; on revient
+  // ensuite à l'onglet de départ, où se trouve le bouton.
+  const onglet = document.querySelector('.tab-btn[aria-selected=true]')
+  if (window.innerWidth < 1020) document.querySelector('[data-target="preview-col"]').click()
+  await new Promise(r => requestAnimationFrame(r))
+  const canvas = await html2canvas($('doc'), {
+    scale: 2, backgroundColor: '#ffffff', logging: false,
+    onclone: d => {
+      d.getElementById('doc').style.transform = 'none'
+      // html2canvas ne sait pas dessiner les lignes de la zone de prescription
+      // (dégradé répété) : on les remplace par de vrais filets dans la copie.
+      for (const zone of d.querySelectorAll('.doc-presc-zone')) {
+        const st = getComputedStyle(zone)
+        const pas = parseFloat(st.lineHeight)
+        zone.style.backgroundImage = 'none'
+        zone.style.position = 'relative'; zone.style.zIndex = '0'
+        for (let k = 1; k * pas <= zone.clientHeight + 1; k++) {
+          const filet = d.createElement('div')
+          filet.style.cssText = `position:absolute;left:0;right:0;top:${k * pas - 1}px;height:0;` +
+            `border-top:1px solid ${getComputedStyle(d.documentElement).getPropertyValue('--doc-filet')};z-index:-1`
+          zone.appendChild(filet)
+        }
+      }
+    },
+  })
+  if (onglet && window.innerWidth < 1020) onglet.click()
+  const pdf = new jspdf.jsPDF({ unit: 'mm', format: 'a4' })
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297)
+  return new File([pdf.output('blob')], nomFichier(), { type: 'application/pdf' })
+}
+
+function telecharger(fichier) {
+  const url = URL.createObjectURL(fichier)
+  const a = Object.assign(document.createElement('a'), { href: url, download: fichier.name })
+  document.body.appendChild(a); a.click(); a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 10000)
+}
+
+// PDF déjà prêt quand le navigateur a refusé le partage (le délai de création
+// a fait expirer le geste de l'utilisateur) : un second appui l'envoie aussitôt.
+let pdfPret = null
+const btnExport = $('btnExport'), msg = $('partageMsg')
+function etat(libelle, texte, occupe) {
+  $('btnExportLib').textContent = libelle
+  msg.textContent = texte || ''
+  btnExport.disabled = !!occupe
+}
+for (const ev of ['input', 'click']) $('form-col').addEventListener(ev, e => {
+  if (pdfPret && !btnExport.contains(e.target)) { pdfPret = null; etat(LIB_BOUTON) }
+})
+
+btnExport.addEventListener('click', async () => {
+  let fichier = pdfPret
+  pdfPret = null
+  try {
+    if (!fichier) { etat('Préparation du PDF…', '', true); fichier = await genererPdf() }
+    if (!peutPartager) { telecharger(fichier); etat(LIB_BOUTON); return }
+    await navigator.share({ files: [fichier], title: 'Ordonnance' })
+    etat(LIB_BOUTON)
+  } catch (e) {
+    if (e && e.name === 'AbortError') { etat(LIB_BOUTON); return }
+    if (e && e.name === 'NotAllowedError' && fichier) {
+      pdfPret = fichier
+      etat('Envoyer le PDF', 'Le PDF est prêt : appuie encore pour l\'envoyer.')
+      return
+    }
+    etat(LIB_BOUTON, 'Le PDF n\'a pas pu être créé. Utilise « Imprimer » en haut de la page.')
+  }
+})
 
 /* ── SCALE PREVIEW ────────────────────────────────────────────────────── */
 function ajusterApercu() {

@@ -58,11 +58,15 @@
   .hero .amount{font-family:var(--title);font-size:46px;line-height:1;margin:0}
   .hero .note{font-size:13px;color:var(--powder);margin:10px 0 0}
   .hero .coussin{font-size:16px;font-weight:600;margin:10px 0 0}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-  .tile{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-m);padding:16px}
-  .tile .k{font-size:12px;color:var(--text-2);margin:0 0 4px}
-  .tile .v{font-family:var(--title);font-size:22px;margin:0}
-  .tile .d{font-size:12px;color:var(--text-2);margin:2px 0 0}
+  .annee{margin-bottom:14px}
+  .annuel{width:100%;border-collapse:collapse;font-size:15px}
+  .annuel thead th{font-size:12px;font-weight:400;color:var(--text-2);text-align:right;padding:0 0 6px}
+  .annuel th[scope=row]{text-align:left;font-weight:400;color:var(--text-2);padding:7px 0}
+  .annuel td{text-align:right;font-weight:500;width:96px;padding:7px 0;white-space:nowrap}
+  .annuel .aide{display:block;font-size:12px;color:var(--text-2);opacity:.8}
+  .annuel .sep th,.annuel .sep td{border-top:1px solid var(--border);padding-top:12px}
+  .annuel .fort th,.annuel .fort td{color:var(--sage-dark)}
+  .annuel .fort th{font-weight:500}
   h2{font-family:var(--title);font-weight:600;font-size:19px;margin:0 0 6px}
   .legal{font-size:13px;color:var(--text-2)}
   .legal ul{padding-left:18px;margin:10px 0}
@@ -133,7 +137,7 @@
   td{padding:6px 6px;border-bottom:1px solid var(--border);text-align:right}
   tr.critique td{background:#FFF6EC}
   td .etoile{color:var(--text-2)}
-  @media(max-width:520px){.grid,.row{grid-template-columns:1fr}h1{font-size:25px}.hero .amount{font-size:38px}
+  @media(max-width:520px){.row{grid-template-columns:1fr}.annuel td{width:78px}h1{font-size:25px}.hero .amount{font-size:38px}
     .card{padding:20px}}
 
   /* ── Bandeau de navigation (identique à l'accueil) ───────────────────── */
@@ -318,34 +322,28 @@
   <div id="erreur" class="card err hidden" role="alert"></div>
 
   <div id="resultats" class="hidden">
+    <!-- D'abord ce que coûte l'année, organisme par organisme ; ensuite le mois.
+         Même ordre et mêmes libellés que le simulateur de l'app. -->
+    <div class="card annee">
+      <h2 id="r-annee-titre">Estimation pour l'année</h2>
+      <table class="annuel" aria-describedby="r-annee-note">
+        <thead><tr><th></th><th>par an</th><th>par mois</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Urssaf</th><td id="r-u-an">—</td><td id="r-u-mois">—</td></tr>
+          <tr><th scope="row"><span id="r-c-nom">CARPIMKO</span><span class="aide" id="r-c-aide"></span></th><td id="r-c-an">—</td><td id="r-c-mois">—</td></tr>
+          <tr><th scope="row">Impôt sur le revenu<span class="aide" id="r-i-aide"></span></th><td id="r-i-an">—</td><td id="r-i-mois">—</td></tr>
+          <tr class="fort sep"><th scope="row">Total</th><td id="r-t-an">—</td><td id="r-t-mois">—</td></tr>
+          <tr class="fort"><th scope="row">Il te reste<span class="aide">après cotisations et impôt, avant tes dépenses perso</span></th><td id="r-r-an">—</td><td id="r-r-mois">—</td></tr>
+        </tbody>
+      </table>
+      <p class="hint" id="r-annee-note">« Par mois » est le montant annuel divisé par 12. Les prélèvements, eux, ne tombent pas chaque mois pareil : le détail est ci-dessous.</p>
+    </div>
+
     <div class="hero">
       <p class="over">À mettre de côté chaque mois</p>
       <p class="amount" id="r-prov">—</p>
       <p class="coussin hidden" id="r-coussin"></p>
       <p class="note" id="r-prov-note"></p>
-    </div>
-
-    <div class="grid">
-      <div class="tile">
-        <p class="k">Il te reste par mois</p>
-        <p class="v" id="r-net">—</p>
-        <p class="d" id="r-net-d"></p>
-      </div>
-      <div class="tile">
-        <p class="k">Mois le plus lourd</p>
-        <p class="v" id="r-max">—</p>
-        <p class="d" id="r-max-d"></p>
-      </div>
-      <div class="tile">
-        <p class="k">Cotisations par an</p>
-        <p class="v" id="r-cotis">—</p>
-        <p class="d" id="r-cotis-d"></p>
-      </div>
-      <div class="tile">
-        <p class="k">Impôt estimé par an</p>
-        <p class="v" id="r-impot">—</p>
-        <p class="d" id="r-impot-d"></p>
-      </div>
     </div>
 
     <div class="card" style="margin-top:20px">
@@ -700,19 +698,20 @@
     var pleine = res.montantsDus.filter(function(x){
       return x.annee > d.anneeDebut && x.annee >= parseInt(mois0.slice(0, 4), 10);
     })[0] || res.montantsDus[res.montantsDus.length - 1];
-    $("r-net").textContent = euros((d.ca - d.charges - pleine.cotisations) / 12);
-    $("r-net-d").textContent = "après cotisations, avant impôt (" + pleine.annee + ")";
-    $("r-cotis").textContent = euros(pleine.cotisations);
-    $("r-cotis-d").textContent = "dues au titre de " + pleine.annee;
-    $("r-impot").textContent = euros(pleine.impot);
+    // Estimation annuelle, organisme par organisme (comme l'app).
     var f = d.foyer;
-    $("r-impot-d").textContent = f.situation === "celibataire" && !f.enfants && !f.autresRevenus
+    var ligne = function(id, an){ $(id + "-an").textContent = euros(an); $(id + "-mois").textContent = euros(an / 12); };
+    $("r-annee-titre").textContent = "Estimation pour l'année " + pleine.annee;
+    $("r-c-nom").textContent = nomCaisse;
+    $("r-c-aide").textContent = nomCaisse === "CIPAV" ? "prélevée par l'Urssaf" : "";
+    $("r-i-aide").textContent = f.situation === "celibataire" && !f.enfants && !f.autresRevenus
       ? "personne seule, sans autre revenu"
       : "part de l'impôt du foyer due à ton activité";
-
-    var max = e.mois.reduce(function(a, l){ return l.total > a.total ? l : a; }, e.mois[0]);
-    $("r-max").textContent = euros(max.total);
-    $("r-max-d").textContent = nomMois(max.mois, true);
+    ligne("r-u", pleine.urssaf);
+    ligne("r-c", pleine.caisse);
+    ligne("r-i", pleine.impot);
+    ligne("r-t", pleine.urssaf + pleine.caisse + pleine.impot);
+    ligne("r-r", d.ca - d.charges - pleine.cotisations - pleine.impot);
 
     // Afficher AVANT de dessiner : masqué, le conteneur mesure 0 px de large
     // et le graphique serait tracé trop petit puis étiré (textes géants).

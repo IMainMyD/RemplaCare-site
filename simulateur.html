@@ -59,6 +59,13 @@
   .hero .note{font-size:13px;color:var(--powder);margin:10px 0 0}
   .hero .coussin{font-size:16px;font-weight:600;margin:10px 0 0}
   .annee{margin-bottom:14px}
+  .regs{margin-top:14px}
+  .reg{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
+  .reg:first-child{border-top:0}
+  .reg .nom{font-weight:500}
+  .reg .quand{font-size:13px;color:var(--text-2)}
+  .reg .mt{font-weight:500;color:#C68B2C;white-space:nowrap}
+  .reg .mt.rembourse{color:var(--green)}
   .annuel{width:100%;border-collapse:collapse;font-size:15px}
   .annuel thead th{font-size:12px;font-weight:400;color:var(--text-2);text-align:right;padding:0 0 6px}
   .annuel th[scope=row]{text-align:left;font-weight:400;color:var(--text-2);padding:7px 0}
@@ -344,6 +351,13 @@
       <p class="amount" id="r-prov">—</p>
       <p class="coussin hidden" id="r-coussin"></p>
       <p class="note" id="r-prov-note"></p>
+    </div>
+
+    <!-- Écart à régulariser : rempli à partir des mouvements de l'échéancier. -->
+    <div class="card regs hidden" id="regs">
+      <h2>Écart à régulariser</h2>
+      <p class="hint">Prélevé d'abord sur un revenu ancien, puis rattrapé l'année suivante.</p>
+      <div id="regs-liste"></div>
     </div>
 
     <div class="card" style="margin-top:20px">
@@ -686,6 +700,7 @@
     $("r-prov").textContent = euros(e.rythmeMensuel);
     $("r-coussin").textContent = "+ " + euros(e.coussinDepart) + " d'avance au départ, une seule fois";
     $("r-coussin").classList.toggle("hidden", !(e.coussinDepart > 0));
+    regularisations(e, nomCaisse);
     $("r-prov-note").textContent = e.coussinDepart > 0
       ? "Sur un compte dédié dès " + nomMois(mois0, true) + " : certains prélèvements tombent avant que " +
         "tu aies eu le temps de les mettre de côté. Ensuite, le versement mensuel suffit à payer " + aPayer +
@@ -749,6 +764,34 @@
       debut = prec = iso;
     });
     return out;
+  }
+
+  // Écart à régulariser : mêmes règles que lib/services/regularisations.ts
+  // (somme des régularisations et soldes d'impôt, par organisme et par année).
+  function regularisations(e, nomCaisse){
+    var groupes = {}, ordre = [];
+    e.mois.forEach(function(l){
+      l.mouvements.forEach(function(mv){
+        if (mv.nature !== "regularisation" && mv.nature !== "solde_impot") return;
+        var cle = mv.organisme + "|" + mv.auTitreDe;
+        if (!groupes[cle]) { groupes[cle] = { organisme: mv.organisme, an: mv.auTitreDe, montant: 0, mois: [] }; ordre.push(cle); }
+        groupes[cle].montant += mv.montant;
+        if (groupes[cle].mois.indexOf(l.mois) < 0) groupes[cle].mois.push(l.mois);
+      });
+    });
+    var regs = ordre.map(function(c){ return groupes[c]; }).filter(function(g){ return Math.abs(g.montant) >= 1; })
+      .sort(function(a, b){ return a.mois[0] < b.mois[0] ? -1 : a.mois[0] > b.mois[0] ? 1 : 0; });
+    var box = $("regs");
+    if (!regs.length) { box.classList.add("hidden"); return; }
+    var noms = { urssaf: "Urssaf", caisse: nomCaisse, impot: "Impôt" };
+    $("regs-liste").innerHTML = regs.map(function(g){
+      var mt = g.montant < 0
+        ? '<span class="mt rembourse">' + euros(-g.montant) + ' remboursés</span>'
+        : '<span class="mt">+' + euros(g.montant) + '</span>';
+      return '<div class="reg"><div><div class="nom">' + noms[g.organisme] + ' · revenus ' + g.an +
+        '</div><div class="quand">' + plages(g.mois).join(", ") + '</div></div>' + mt + '</div>';
+    }).join("");
+    box.classList.remove("hidden");
   }
 
   function alerte(e){

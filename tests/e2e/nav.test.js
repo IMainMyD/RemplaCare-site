@@ -56,3 +56,28 @@ test('ressources est noindex', async () => {
   assert.match(await page.locator('meta[name=robots]').getAttribute('content'), /noindex/);
   await page.close();
 });
+
+test('lien Nous contacter mobile aux couleurs de la palette', async () => {
+  const page = await open(375, 700);
+  await page.locator('.nav-burger').click();
+  const link = page.locator('#nav-menu .nav-contact-mobile');
+  assert.equal(await link.isVisible(), true);
+  const s = await link.evaluate((e) => { const c = getComputedStyle(e); return [c.color, c.backgroundColor]; });
+  assert.deepEqual(s, ['rgb(255, 255, 255)', 'rgb(30, 50, 74)']);
+  await page.close();
+});
+
+test('pas de débordement de la barre entre 900 et 1100 px', async () => {
+  for (const w of [900, 1000, 1100]) {
+    const page = await open(w, 800);
+    const m = await page.evaluate(() => ({
+      sw: document.documentElement.scrollWidth, iw: window.innerWidth,
+      h: document.querySelector('.site-header').getBoundingClientRect().height,
+      nh: document.querySelector('.site-nav').scrollHeight,
+    }));
+    assert.ok(m.sw <= m.iw, `${w}: scrollWidth ${m.sw} > ${m.iw}`);
+    assert.equal(m.h, 68, `${w}: hauteur ${m.h}`);
+    assert.ok(m.nh <= 68, `${w}: contenu de la barre ${m.nh}`);
+    await page.close();
+  }
+});

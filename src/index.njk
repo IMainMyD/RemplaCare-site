@@ -1,0 +1,368 @@
+---
+title: "RemplaCare — Pilotez votre activité de remplaçant (enfin) avec visibilité"
+description: "Application pour les professionnels libéraux de santé remplaçants (infirmiers, kinés, orthophonistes, sages-femmes…) : planifiez vos remplacements, suivez votre chiffre d'affaires et vos rétrocessions en temps réel. Créée par un infirmier libéral remplaçant. Gratuite."
+navCurrent: ""
+---
+{% extends "base.njk" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/css/home.css">
+{% endblock %}
+
+{% block content %}
+<section class="stage">
+  <div class="hero">
+    <h1>Le calendrier des professionnels de santé</h1>
+    <p class="hero-sub">Spécialement conçu pour les remplaçants</p>
+    <p class="hero-text">Ayez une vision de votre CA prévisionnel, anticipez vos cotisations et <span class="nowrap">consacrez-vous</span> à votre pratique.</p>
+    <div class="hero-cta">
+      <a class="hero-btn hero-btn-primary" href="#telecharger" data-download>S'inscrire</a>
+      <a class="hero-btn hero-btn-ghost" href="#telecharger" data-download>Télécharger l'app</a>
+    </div>
+  </div>
+
+  <div class="carousel" data-carousel data-autoplay="on">
+    <div class="tabs-row">
+      <button class="car-arrow" type="button" data-carousel-prev aria-label="Outil précédent">‹</button>
+      <div class="tabs" role="tablist" aria-label="Les outils RemplaCare">
+        <button class="tab" type="button" role="tab" id="tab-calendrier" data-tool="calendrier" aria-selected="true" aria-controls="panel-calendrier" tabindex="0" aria-label="Calendrier">
+          <svg class="tab-ring" viewBox="0 0 88 88" aria-hidden="true" focusable="false"><path class="ring-path" pathLength="100" d="M44 2 H59 A27 27 0 0 1 86 29 V59 A27 27 0 0 1 59 86 H29 A27 27 0 0 1 2 59 V29 A27 27 0 0 1 29 2 Z"/></svg>
+          {% icon "calendrier" %}
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-moniteur" data-tool="moniteur" aria-selected="false" aria-controls="panel-moniteur" tabindex="-1" aria-label="Moniteur">
+          <svg class="tab-ring" viewBox="0 0 88 88" aria-hidden="true" focusable="false"><path class="ring-path" pathLength="100" d="M44 2 H59 A27 27 0 0 1 86 29 V59 A27 27 0 0 1 59 86 H29 A27 27 0 0 1 2 59 V29 A27 27 0 0 1 29 2 Z"/></svg>
+          {% icon "moniteur" %}
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-simulateur" data-tool="simulateur" aria-selected="false" aria-controls="panel-simulateur" tabindex="-1" aria-label="Simulateur de cotisation">
+          <svg class="tab-ring" viewBox="0 0 88 88" aria-hidden="true" focusable="false"><path class="ring-path" pathLength="100" d="M44 2 H59 A27 27 0 0 1 86 29 V59 A27 27 0 0 1 59 86 H29 A27 27 0 0 1 2 59 V29 A27 27 0 0 1 29 2 Z"/></svg>
+          {% icon "simulateur" %}
+        </button>
+        <button class="tab" type="button" role="tab" id="tab-trousse" data-tool="trousse" aria-selected="false" aria-controls="panel-trousse" tabindex="-1" aria-label="Trousse de secours">
+          <svg class="tab-ring" viewBox="0 0 88 88" aria-hidden="true" focusable="false"><path class="ring-path" pathLength="100" d="M44 2 H59 A27 27 0 0 1 86 29 V59 A27 27 0 0 1 59 86 H29 A27 27 0 0 1 2 59 V29 A27 27 0 0 1 29 2 Z"/></svg>
+          {% icon "trousse" %}
+        </button>
+      </div>
+      <button class="car-arrow" type="button" data-carousel-next aria-label="Outil suivant">›</button>
+    </div>
+
+    <div class="panels">
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-calendrier" aria-labelledby="tab-calendrier">
+        <div class="panel-text">
+          <p class="panel-tool"><span class="panel-badge">{% icon "calendrier" %}</span>Calendrier</p>
+          <h3>Organisez votre vie grâce à un calendrier répondant à vos besoins.</h3>
+          <ul>
+            <li>Importez vos jours travaillés de votre téléphone</li>
+            <li>Entrez votre CA journalier, votre amplitude horaire et planifiez votre réveil</li>
+            <li>Ne vous souciez plus de rien</li>
+          </ul>
+          <a class="panel-more" href="/nos-solutions#calendrier">En savoir plus →</a>
+        </div>
+        <div class="panel-visual">[ visuel de l'app ]</div>
+      </section>
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-moniteur" aria-labelledby="tab-moniteur" hidden>
+        <div class="panel-text">
+          <p class="panel-tool"><span class="panel-badge">{% icon "moniteur" %}</span>Moniteur</p>
+          <h3>Suivez quotidiennement votre activité</h3>
+          <ul>
+            <li>Évaluez vos revenus tout en gardant un œil sur votre rythme de travail</li>
+            <li>Fixez-vous des objectifs et mettez en place ce qu'il faut pour les atteindre</li>
+            <li>Tracez vos paiements</li>
+          </ul>
+          <a class="panel-more" href="/nos-solutions#moniteur">En savoir plus →</a>
+        </div>
+        <div class="panel-visual">[ visuel de l'app ]</div>
+      </section>
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-simulateur" aria-labelledby="tab-simulateur" hidden>
+        <div class="panel-text">
+          <p class="panel-tool"><span class="panel-badge">{% icon "simulateur" %}</span>Simulateur de cotisation</p>
+          <h3>Ne craignez plus les rattrapages et anticipez pour ne plus subir</h3>
+          <ul>
+            <li>URSSAF et CARPIMKO : découvrez à l'avance ce que vous devez provisionner</li>
+            <li>Consacrez-vous à votre pratique, payez-vous le prix juste et soyez serein pour l'avenir</li>
+          </ul>
+          <a class="panel-more" href="/simulateur">En savoir plus →</a>
+        </div>
+        <div class="panel-visual">[ visuel de l'app ]</div>
+      </section>
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-trousse" aria-labelledby="tab-trousse" hidden>
+        <div class="panel-text">
+          <p class="panel-tool"><span class="panel-badge">{% icon "trousse" %}</span>Trousse de secours</p>
+          <h3>Des outils à votre disposition</h3>
+          <ul>
+            <li>Générateur d'ordonnance, guide de cotations, astuces pour votre pratique… tout ce dont vous avez besoin pour répondre à vos besoins du quotidien</li>
+          </ul>
+          <a class="panel-more" href="/ordonnance">En savoir plus →</a>
+        </div>
+        <div class="panel-visual">[ visuel de l'app ]</div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<div class="home">
+<!-- ─────────── 2. PROBLÈME ─────────── -->
+<section id="probleme" class="problem">
+  <div class="wrap narrow">
+    <div class="section-head reveal">
+      <h2>Pour les remplaçants qui pilotent leur activité avec précision</h2>
+      <p class="lead">Posez-vous ces 4 questions. Si vous n'avez pas les réponses, RemplaCare va vous aider à voir plus clair.</p>
+    </div>
+
+    <div class="pain-list reveal">
+      <div class="pain">
+        <p class="pain-q">« Combien je vais toucher ce mois-ci avec mes remplacements ? »</p>
+      </div>
+      <div class="pain">
+        <p class="pain-q">« J'ai combien de jours de libre le mois prochain ? »</p>
+      </div>
+      <div class="pain">
+        <p class="pain-q">« Quel cabinet me rapporte le plus, rétrocessions déduites ? »</p>
+      </div>
+      <div class="pain">
+        <p class="pain-q">« Est-ce que j'ai de la place pour un nouveau remplacement ? »</p>
+      </div>
+    </div>
+
+    <div class="fears reveal">
+      <div class="fears-col">
+        <p>Nous, remplaçants, sommes là pour dépanner, et nous avons tendance à subir notre planning. Nous avons peur :</p>
+        <ul>
+          <li>de ne pas gagner assez&nbsp;;</li>
+          <li>d'avoir beaucoup de cotisations à payer&nbsp;;</li>
+          <li>de ne pas assez profiter.</li>
+        </ul>
+      </div>
+      <div class="fears-col clarity">
+        <p>Avec RemplaCare, un remplaçant gagne enfin en clarté. Il sait exactement :</p>
+        <ul>
+          <li>combien de CA il touche par mois&nbsp;;</li>
+          <li>combien de jours il travaille&nbsp;;</li>
+          <li>ce qu'il doit provisionner <em class="soon">(bientôt disponible)</em>.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 3. AVANT / APRÈS ─────────── -->
+<section id="avant-apres">
+  <div class="wrap narrow">
+    <div class="section-head reveal">
+      <h2>Il y a un avant et un après</h2>
+    </div>
+
+    <div class="ba-list reveal">
+      <div class="ba">
+        <div class="ba-before"><span>Avant</span>Un onglet Excel par cabinet, des formules qui cassent, et une soirée par mois à tout réconcilier.</div>
+        <div class="ba-after"><span>Après</span>Chaque tournée a son CA et sa rétro. Vous pointez le jour, tout se calcule. Zéro formule.</div>
+      </div>
+      <div class="ba">
+        <div class="ba-before"><span>Avant</span>Vos remplacements sont dans votre calendrier Apple, votre CA est « à peu près » dans votre tête.</div>
+        <div class="ba-after"><span>Après</span>Votre calendrier s'importe en 10 secondes. Les jours posés deviennent des jours travaillés, chiffrés.</div>
+      </div>
+      <div class="ba">
+        <div class="ba-before"><span>Avant</span>Vous découvrez votre vrai CA de l'année chez le comptable, en avril, quand c'est trop tard pour ajuster.</div>
+        <div class="ba-after"><span>Après</span>Brut, net, rétrocessions, moyenne par jour : vous savez où vous en êtes le 12 du mois.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 4. VALEUR ─────────── -->
+<section id="valeur">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2>Trois minutes par semaine.<br>Le reste, vous le récupérez.</h2>
+    </div>
+
+    <div class="values">
+      <div class="value reveal">
+        <span class="value-num">Votre temps</span>
+        <h3>Fini le tableur du dimanche</h3>
+        <p>
+          Un tap pour pointer un jour. Une tournée créée une fois se répète toute seule.
+          Votre calendrier Apple ou Google s'importe en dix secondes — les jours déjà posés
+          deviennent des jours travaillés, sans re-saisie.
+        </p>
+        <span class="gain">Moins de saisie, plus de temps pour vous</span>
+      </div>
+
+      <div class="value reveal">
+        <span class="value-num">Votre argent</span>
+        <h3>Votre CA, en temps réel</h3>
+        <p>
+          Le chiffre d'affaires du mois se calcule à mesure que vous remplissez votre planning.
+          Brut, net, rétrocessions, moyenne par jour : vous voyez où vous en êtes le 12 du mois,
+          pas trois mois plus tard.
+        </p>
+        <span class="gain">Une vision à jour toute l'année</span>
+      </div>
+
+      <div class="value reveal">
+        <span class="value-num">Votre liberté</span>
+        <h3>Dire non, en connaissance de cause</h3>
+        <p>
+          Quand votre mois est visible d'un coup d'œil, vous savez si vous pouvez prendre cette
+          semaine en plus — ou si vous avez déjà atteint votre objectif et que ce week-end,
+          il est à vous.
+        </p>
+        <span class="gain">Vous choisissez vos journées</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 5. FONDATEUR ─────────── -->
+<section id="fondateur" class="founder">
+  <div class="wrap narrow founder-inner reveal">
+    <div>
+      <p class="eyebrow">Pourquoi cette app existe</p>
+      <p class="founder-quote">
+        « Je suis infirmier libéral remplaçant. Pendant six ans, j'ai géré mon planning
+        sur un tableur et mon chiffre d'affaires dans ma tête. Ça ne marchait pas. »
+      </p>
+      <p>
+        Aucun outil n'était fait pour nous. Les logiciels de cabinet gèrent les patients,
+        pas notre activité. Les applis de compta se contentent de déduire, sans jamais
+        permettre de prédire.
+      </p>
+      <p>
+        Avec ma compagne, j'ai construit celle que je voulais utiliser : un calendrier qui parle
+        aux remplaçants, avec un suivi de CA, qui permet de s'organiser en fonction de soi
+        et non en fonction des autres.
+      </p>
+      <p>
+        Chaque retour est le bienvenu !
+      </p>
+      <div class="founder-sig">
+        Samuel<span>Infirmier libéral remplaçant · Lyon</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── TÉMOIGNAGES (conservé) ─────────── -->
+<section id="temoignages">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2>Les premiers retours</h2>
+      <p class="lead">Voici ce que disent les remplaçants qui l'utilisent déjà.</p>
+    </div>
+
+    <div class="quotes reveal">
+      <div class="quote">
+        <p>« Jusqu'à présent je suivais mon CA sur un Excel. Je rentrais chaque jour prévu avec le CA associé. C'était fastidieux mais nécessaire pour pouvoir m'organiser et voir venir. Ce qui me prenait des heures auparavant peut maintenant se faire en quelques minutes ! »</p>
+        <div class="quote-who">
+          <div class="avatar">A</div>
+          <div>
+            <strong>Andrea</strong>
+            <em>Infirmière remplaçante · Paris</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <p>« Lorsque j'avais besoin de plus de revenus, j'acceptais n'importe quel rempla, quitte à travailler des semaines sans pause. Résultat ? Plus de temps libre, un meilleur revenu, mais une hausse de cotisations qui a rendu mes efforts inutiles… D'où l'importance de piloter son activité, même en tant que remplaçant. »</p>
+        <div class="quote-who">
+          <div class="avatar">M</div>
+          <div>
+            <strong>Maxime</strong>
+            <em>IDEL remplaçant · Marseille</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="quote">
+        <p>« Étant remplaçant dans 4 cabinets, il a toujours été difficile pour moi de suivre mon activité et mon planning. Maintenant je peux suivre exactement le CA touché par cabinet, et surtout organiser ma vie de famille en fonction ! »</p>
+        <div class="quote-who">
+          <div class="avatar">N</div>
+          <div>
+            <strong>Nicolas</strong>
+            <em>IDEL remplaçant · Dijon</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="beta-note reveal">
+      Vos retours façonnent directement la suite. <a href="/feedback">Dites-nous ce qui manque.</a>
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── 6. FAQ ─────────── -->
+<section id="faq" class="problem">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <p class="eyebrow">Avant de vous lancer</p>
+      <h2>Les questions qu'on nous pose</h2>
+    </div>
+
+    <div class="faq reveal">
+      <details>
+        <summary>C'est vraiment gratuit ?</summary>
+        <p>Oui. Le calendrier, le suivi de CA, le moniteur et la trousse de secours sont gratuits, sans carte bancaire. Une version Pro à 8,99 €/mois ou 79 €/an, avec le simulateur détaillé et des objectifs illimités, est prévue ; voir <a href="/nos-solutions">Nos solutions</a>.</p>
+      </details>
+
+      <details>
+        <summary>Mes données sont-elles en sécurité ?</summary>
+        <p>Vos données sont hébergées en Europe (Francfort), chiffrées, et ne sont ni vendues ni partagées. L'app ne collecte aucune donnée patient ni votre numéro RPPS : vous pouvez le saisir pour éditer une ordonnance, mais il n'est pas transmis à RemplaCare. Vous pouvez supprimer votre compte à tout moment depuis les réglages.</p>
+      </details>
+
+      <details>
+        <summary>Est-ce que ça remplace mon comptable ?</summary>
+        <p>Non, et ce n'est pas le but. RemplaCare vous donne une vision claire et à jour de votre activité, à partir de ce que vous saisissez. Les chiffres qu'elle affiche sont indicatifs : votre expert-comptable reste la référence pour vos obligations fiscales.</p>
+      </details>
+
+      <details>
+        <summary>Je ne suis pas infirmier. C'est pour moi ?</summary>
+        <p>Oui. RemplaCare a été créée par un infirmier, mais le planning, le suivi de CA et les rétrocessions fonctionnent de la même façon pour tous les professionnels libéraux de santé remplaçants : kinés, orthophonistes, sages-femmes, médecins… Si vous l'essayez, vos retours sur votre métier nous intéressent particulièrement.</p>
+      </details>
+
+      <details>
+        <summary>Je suis titulaire, pas remplaçant. C'est pour moi ?</summary>
+        <p>L'app est pensée d'abord pour les remplaçants. Un mode titulaire existe, mais il est encore jeune. Si vous êtes titulaire et que vous voulez l'essayer, vos retours nous sont précieux.</p>
+      </details>
+
+      <details>
+        <summary>Et sur Android ?</summary>
+        <p>Oui. Cliquez sur « Télécharger », choisissez Android, et l'APK se télécharge directement depuis ce site.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── 7. BANDEAU FINAL ─────────── -->
+<section class="cta-band" id="cta-final">
+  <div class="wrap narrow reveal">
+    <h2>Le mois prochain, vous saurez.</h2>
+    <p>
+      Combien vous avez travaillé. Combien vous avez gagné. Et combien de journées
+      il vous reste pour vous. Ça commence par un tap.
+    </p>
+    <div class="cta-actions">
+      <a class="hero-btn hero-btn-primary" href="#telecharger" data-download>S'inscrire</a>
+      <a class="hero-btn hero-btn-ghost" href="#telecharger" data-download>Télécharger l'app</a>
+    </div>
+  </div>
+</section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/assets/js/carousel-core.js" defer></script>
+<script src="/assets/js/carousel.js" defer></script>
+<script>
+(function(){
+  if(!('IntersectionObserver' in window)){
+    document.querySelectorAll('.reveal').forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+{% endblock %}

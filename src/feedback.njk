@@ -1,0 +1,19 @@
+---
+title: "Contactez-nous — RemplaCare"
+description: "Une question, un bug, une idée ? Écrivez-nous directement."
+---
+{% extends "base.njk" %}
+{% block head %}
+<style>
+  main { max-width:640px; margin:0 auto; padding:36px 20px 60px; }
+  main h1 { font-size:24px; margin:0 0 8px; text-align:center; }
+  p.intro { color:var(--muted); font-size:15px; text-align:center; margin:0 0 30px; }
+  iframe { width:100%; min-height:560px; border:none; border-radius:14px; background:#fff; }
+</style>
+{% endblock %}
+{% block content %}
+  <h1>Contactez-nous</h1>
+  <p class="intro">Un bug, une idée, une question ? Dites-nous tout — chaque retour compte, surtout en ce moment.</p>
+
+  <iframe title="Formulaire de contact" src="https://tally.so/embed/yPRXXW?alignLeft=1&hideTitle=1&transparentBackground=1" loading="lazy"></iframe>
+{% endblock %}

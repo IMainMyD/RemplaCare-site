@@ -1,64 +1,24 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conditions Générales d'Utilisation — RemplaCare</title>
-<meta name="robots" content="index,follow">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+---
+title: "Conditions Générales d'Utilisation — RemplaCare"
+description: "Conditions générales d'utilisation de l'application RemplaCare."
+robots: "index,follow"
+---
+{% extends "base.njk" %}
+{% block head %}
 <style>
-  :root {
-    --navy:#1C324A; --sage:#77A895; --bg:#FAFAF7; --text:#2A2A2A; --muted:#6B7280; --line:#E5E7EB;
-  }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); color:var(--text); font-family:'Jost',sans-serif; line-height:1.7; }
   main { max-width:760px; margin:0 auto; padding:40px 22px 80px; }
-  h1 { font-family:'Fraunces',serif; font-weight:700; color:var(--navy); font-size:30px; line-height:1.25; margin:0 0 6px; }
-  h2 { font-family:'Fraunces',serif; font-weight:600; color:var(--navy); font-size:21px; margin:38px 0 10px; }
-  p, li { font-size:16px; }
-  strong { color:var(--navy); }
-  ul { padding-left:22px; }
-  li { margin:5px 0; }
-  hr { border:none; border-top:1px solid var(--line); margin:34px 0; }
-  blockquote { background:#fff; border-left:3px solid var(--sage); margin:24px 0; padding:14px 18px; color:var(--muted); font-size:14px; border-radius:4px; }
-  a { color:var(--sage); }
-  footer { text-align:center; color:var(--muted); font-size:13px; padding:30px 20px 50px; }
-  footer a { color:var(--muted); margin:0 8px; }
-
-  /* ── Bandeau de navigation (identique à l'accueil) ───────────────────── */
-  .site-nav{position:sticky;top:0;z-index:50;background:rgba(28,50,74,.96);
-    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:22px 0}
-  .site-nav-inner{max-width:1040px;margin:0 auto;padding:0 24px;display:flex;
-    align-items:center;justify-content:space-between;gap:16px}
-  .site-nav .brand{font-family:'Fraunces',Georgia,serif;font-weight:700;font-size:25px;
-    color:#fff;text-decoration:none;white-space:nowrap}
-  .site-nav .brand em{color:#77A895;font-style:normal}
-  .site-nav .nav-right{display:flex;align-items:center;gap:18px}
-  .site-nav .nav-link{font-family:'Jost',sans-serif;color:rgba(255,255,255,.8);text-decoration:none;
-    font-weight:600;font-size:17px;white-space:nowrap}
-  .site-nav .nav-link:hover,.site-nav .nav-link[aria-current=page]{color:#fff}
-  .site-nav .nav-cta{font-family:'Jost',sans-serif;background:#4E7A67;color:#fff;text-decoration:none;
-    font-weight:600;font-size:17px;line-height:1.65;padding:12px 22px;border-radius:22px;
-    white-space:nowrap;transition:background .2s}
-  .site-nav .nav-cta:hover{background:#3F6354}
-  @media (max-width:640px){.site-nav .nav-link{display:none}}
-  @media print{.site-nav{display:none !important}}
+  main h1 { font-size:30px; line-height:1.25; margin:0 0 6px; }
+  main h2 { font-size:21px; margin:38px 0 10px; }
+  main p, main li { font-size:16px; }
+  main strong { color:var(--navy); }
+  main ul { padding-left:22px; }
+  main li { margin:5px 0; }
+  main hr { border:none; border-top:1px solid var(--line); margin:34px 0; }
+  main blockquote { background:#fff; border-left:3px solid var(--olive); margin:24px 0; padding:14px 18px; color:var(--muted); font-size:14px; border-radius:4px; }
+  main a { color:var(--green); }
 </style>
-</head>
-<body>
-<nav class="site-nav" aria-label="Navigation principale">
-  <div class="site-nav-inner">
-    <a class="brand" href="/">rempl<em>a</em> care</a>
-    <div class="nav-right">
-      <a class="nav-link" href="/simulateur.html">Simulateur</a>
-      <a class="nav-link" href="/ordonnance.html">Ordonnance</a>
-      <a class="nav-cta" href="#telecharger" data-download>Télécharger</a>
-    </div>
-  </div>
-</nav>
-<main>
+{% endblock %}
+{% block content %}
 <h1>Conditions Générales d'Utilisation — RemplaCare</h1>
 <p><strong>Dernière mise à jour : 01/07/2026</strong>
 <strong>Version : 1.0</strong></p>
@@ -131,11 +91,4 @@
 <blockquote>
 <p>Document rédigé pour le lancement de l'Application. Une revue par un professionnel du droit est recommandée avant un déploiement à grande échelle.</p>
 </blockquote>
-</main>
-<footer>
-  <a href="/cgu">CGU</a> · <a href="/confidentialite">Confidentialité</a><br>
-  © 2026 RemplaCare — contact@remplacare.fr
-</footer>
-<script src="/download.js" defer></script>
-</body>
-</html>
+{% endblock %}

@@ -19,15 +19,15 @@
   }
   .dl-overlay.open .dl-card{transform:translateY(0)}
   .dl-card h2{
-    font-family:'Fraunces',Georgia,serif;color:#1C324A;font-size:22px;font-weight:600;
+    font-family:'Fraunces',Georgia,serif;color:#1E324A;font-size:22px;font-weight:600;
     margin:0 0 6px;line-height:1.2;
   }
-  .dl-card p{color:#5A6B7B;font-size:14px;margin:0 0 20px}
+  .dl-card p{color:#566677;font-size:14px;margin:0 0 20px}
   .dl-close{
     position:absolute;top:10px;right:12px;width:32px;height:32px;border:0;background:none;
-    font-size:24px;line-height:1;color:#5A6B7B;cursor:pointer;border-radius:50%;
+    font-size:24px;line-height:1;color:#566677;cursor:pointer;border-radius:50%;
   }
-  .dl-close:hover{background:rgba(28,50,74,.08);color:#1C324A}
+  .dl-close:hover{background:rgba(30,50,74,.08);color:#1E324A}
   .dl-btn{
     display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
     padding:14px 18px;border-radius:26px;font-weight:600;font-size:16px;text-decoration:none;
@@ -35,10 +35,10 @@
   }
   .dl-btn + .dl-btn{margin-top:12px}
   .dl-btn svg{width:22px;height:22px;flex-shrink:0;fill:currentColor}
-  .dl-ios{background:#1C324A;color:#fff}
+  .dl-ios{background:#1E324A;color:#fff}
   .dl-ios:hover{background:#15263A}
-  .dl-android{background:#4E7A67;color:#fff}
-  .dl-android:hover{background:#3F6354}
+  .dl-android{background:#006026;color:#fff}
+  .dl-android:hover{background:#00451B}
   .dl-card .dl-help{display:none;margin:14px 0 0;font-size:13px;line-height:1.5;color:#22303D;text-align:left;
     background:#fff;border-radius:12px;padding:12px 14px}
   .dl-card .dl-help.show{display:block}
@@ -60,11 +60,11 @@
     '<div class="dl-card" role="dialog" aria-modal="true" aria-labelledby="dlTitle">' +
       '<button class="dl-close" type="button" aria-label="Fermer">×</button>' +
       '<h2 id="dlTitle">Télécharger RemplaCare</h2>' +
-      '<p>Choisis ton téléphone</p>' +
+      '<p>Choisissez votre téléphone</p>' +
       '<a class="dl-btn dl-ios" href="' + APP_STORE + '" target="_blank" rel="noopener">' + apple + 'iOS</a>' +
       '<a class="dl-btn dl-android" href="' + APK + '">' + android + 'Android</a>' +
-      '<p class="dl-help" id="dlHelp" role="status">Le téléchargement démarre. Ouvre ensuite le fichier Remplacare.apk depuis tes téléchargements. ' +
-        'Si Android bloque l\'installation, autorise « Installer des applis inconnues » pour ton navigateur, puis rouvre le fichier.</p>' +
+      '<p class="dl-help" id="dlHelp" role="status">Le téléchargement démarre. Ouvrez ensuite le fichier Remplacare.apk depuis vos téléchargements. ' +
+        'Si Android bloque l\'installation, autorisez « Installer des applis inconnues » pour votre navigateur, puis rouvrez le fichier.</p>' +
     '</div>';
   document.body.appendChild(overlay);
 

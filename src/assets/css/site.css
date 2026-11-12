@@ -1,0 +1,105 @@
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+
+/* Barre du haut : seul endroit translucide */
+.site-header {
+  position: sticky; top: 0; z-index: 50;
+  height: var(--nav-h);
+  background: rgba(255, 255, 255, .55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(30, 50, 74, .08);
+}
+.site-nav {
+  height: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px;
+  display: flex; align-items: center; gap: 24px;
+}
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--navy); text-decoration: none;
+  font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 22px;
+}
+.nav-brand img { width: 36px; height: 36px; display: block; object-fit: contain; }
+.nav-menu { display: flex; align-items: center; gap: 4px; margin: 0 auto; }
+.nav-link {
+  color: var(--navy); text-decoration: none; font-weight: 500; font-size: 15px;
+  padding: 8px 14px; border-radius: 999px; transition: background .2s;
+}
+.nav-link:hover { background: rgba(30, 50, 74, .07); }
+.nav-link[aria-current="page"] { background: rgba(30, 50, 74, .1); font-weight: 600; }
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.pill {
+  display: inline-block; border-radius: 999px; padding: 9px 20px;
+  font-weight: 600; font-size: 15px; text-decoration: none;
+  border: 1.5px solid var(--navy); white-space: nowrap; line-height: 1.3;
+}
+.nav-contact, .nav-contact-mobile { background: var(--navy); color: #fff; }
+.nav-contact:hover, .nav-contact:focus-visible,
+.nav-contact-mobile:hover, .nav-contact-mobile:focus-visible { background: var(--navy-deep); }
+.nav-download { background: transparent; color: var(--navy); }
+.nav-download:hover { background: rgba(30, 50, 74, .07); }
+.nav-burger {
+  display: none; width: 44px; height: 44px; border: 0; background: transparent;
+  border-radius: 12px; cursor: pointer; padding: 0; position: relative;
+}
+.nav-burger span, .nav-burger span::before, .nav-burger span::after {
+  display: block; position: absolute; left: 12px; width: 20px; height: 2px;
+  background: var(--navy); border-radius: 2px; content: '';
+}
+.nav-burger span { top: 21px; }
+.nav-burger span::before { left: 0; top: -6px; }
+.nav-burger span::after { left: 0; top: 6px; }
+
+@media (max-width: 899px) {
+  .site-nav { gap: 10px; }
+  .nav-actions { margin-left: auto; }
+  .nav-contact { display: none; }
+  .nav-burger { display: block; }
+  .nav-menu {
+    display: none; position: absolute; top: var(--nav-h); left: 0; right: 0;
+    flex-direction: column; align-items: stretch; gap: 0; margin: 0;
+    padding: 12px 24px 20px; background: #fff;
+    border-bottom: 1px solid var(--line); box-shadow: 0 12px 24px rgba(30, 50, 74, .08);
+  }
+  .nav-menu.open { display: flex; }
+  .nav-menu .nav-link { padding: 14px 8px; border-radius: 10px; font-size: 17px; }
+  .nav-menu .nav-contact-mobile { display: inline-block; margin-top: 12px; text-align: center; }
+  html:not(.js) .nav-menu { display: flex; position: static; flex-direction: row; flex-wrap: wrap; box-shadow: none; padding: 0; background: none; border: 0; }
+  html:not(.js) .site-header { height: auto; min-height: var(--nav-h); }
+  html:not(.js) .nav-burger { display: none; }
+  html:not(.js) .site-nav { flex-wrap: wrap; }
+}
+@media (min-width: 900px) {
+  .nav-contact-mobile { display: none; }
+}
+@media (min-width: 900px) and (max-width: 1100px) {
+  .site-nav { gap: 12px; padding: 0 16px; }
+  .nav-brand { font-size: 20px; }
+  .nav-menu { gap: 0; }
+  .nav-link { padding: 8px 8px; font-size: 14px; white-space: nowrap; }
+  .nav-actions { gap: 6px; }
+  .pill { padding: 8px 14px; font-size: 14px; }
+}
+@media (max-width: 420px) {
+  .nav-download { padding: 8px 14px; }
+}
+
+/* Pied de page */
+.site-footer {
+  background: var(--navy-deep); color: rgba(255, 255, 255, .7);
+  padding: 44px 0; text-align: center; font-size: 14px;
+}
+.site-footer a { color: rgba(255, 255, 255, .85); text-decoration: none; margin: 0 10px; }
+.site-footer a:hover { color: #fff; }
+.footer-brand {
+  font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 20px;
+  color: #fff; margin-bottom: 14px;
+}
+.footer-copy { margin: 18px 0 0; font-size: 13px; color: rgba(255, 255, 255, .7); }
+
+.page-title { padding-top: 56px; padding-bottom: 24px; }
+.page-title h1 { font-size: clamp(34px, 5.5vw, 54px); font-weight: 700; margin: 0 0 12px; }
+
+@media print { .site-header, .site-footer { display: none !important; } }
+
+/* Ancres : ne pas atterrir sous la barre fixe */
+[id] { scroll-margin-top: calc(var(--nav-h) + 16px); }

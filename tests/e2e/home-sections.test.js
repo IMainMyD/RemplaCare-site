@@ -17,7 +17,7 @@ async function open(width = 1280) {
 test('ordre des sections', async () => {
   const page = await open();
   const order = await page.evaluate(() => {
-    const ids = ['probleme', 'avant-apres', 'valeur', 'fondateur', 'faq', 'cta-final'];
+    const ids = ['optimise', 'probleme', 'avant-apres', 'valeur', 'fondateur', 'faq', 'cta-final'];
     const car = document.querySelector('[data-carousel]');
     const els = ids.map((i) => document.getElementById(i));
     if (els.some((e) => !e)) return { missing: ids.filter((i) => !document.getElementById(i)) };
@@ -61,4 +61,24 @@ test('pas de débordement horizontal', async () => {
     assert.ok(over <= 0, `débordement ${over}px à ${w}`);
     await page.close();
   }
+});
+
+test('section « Optimisé pour les remplaçants »', async () => {
+  const page = await open();
+  const norm = (t) => t.replace(/\s+/g, ' ').trim();
+  assert.equal(norm(await page.locator('#optimise h2').textContent()),
+    'Optimisé pour les remplaçants travaillant sur plusieurs tournées');
+  assert.equal(norm(await page.locator('#optimise p').textContent()),
+    'Votre travail est de soigner, mais ne perdez pas de vue ce que vous devez gagner. RemplaCare comptabilise votre CA, afin que vous ayez du temps pour ce qui compte.');
+  const btn = page.locator('#optimise a[data-download]');
+  assert.equal(norm(await btn.textContent()), 'Télécharger gratuitement');
+  const st = await page.locator('#optimise').evaluate((e) => {
+    const c = getComputedStyle(e); return { bg: c.backgroundColor, pt: parseFloat(c.paddingTop), ta: c.textAlign };
+  });
+  assert.equal(st.bg, 'rgb(255, 255, 255)');
+  assert.ok(st.pt >= 80, 'padding ' + st.pt);
+  assert.equal(st.ta, 'center');
+  await btn.click();
+  await page.waitForSelector('.dl-overlay.open');
+  await page.close();
 });

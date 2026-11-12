@@ -84,3 +84,24 @@ test('liens « En savoir plus »', async () => {
     ['/nos-solutions#calendrier', '/nos-solutions#moniteur', '/simulateur', '/ordonnance']);
   await page.close();
 });
+
+test('bandeaux blancs autour du hero et du bandeau final', async () => {
+  for (const [w, band] of [[1280, 20], [375, 20]]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: 900 } });
+    const page = await ctx.newPage();
+    await page.goto(server.url + '/');
+    for (const sel of ['.stage', '.cta-band']) {
+      const r = await page.locator(sel).evaluate((e) => {
+        const b = e.getBoundingClientRect();
+        return { l: b.left, r: document.documentElement.clientWidth - b.right, rad: getComputedStyle(e).borderTopLeftRadius };
+      });
+      assert.equal(r.l, band, `${sel} gauche à ${w}`);
+      assert.equal(r.r, band, `${sel} droite à ${w}`);
+      assert.equal(r.rad, '32px', sel);
+    }
+    assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), 'rgb(255, 255, 255)');
+    const top = await page.locator('.stage').evaluate((e) => e.getBoundingClientRect().top - document.querySelector('.site-header').getBoundingClientRect().bottom);
+    assert.equal(top, band, 'le hero commence sous la barre, à la distance de la bande : ' + top);
+    await ctx.close();
+  }
+});

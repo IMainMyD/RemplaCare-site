@@ -20,10 +20,11 @@ navCurrent: ""
     </div>
   </div>
 
-  <div class="carousel" data-carousel data-autoplay="on">
+  <div class="carousel" data-carousel data-autoplay="on" data-phase="idle" data-active-tool="calendrier">
     <div class="tabs-row">
       <button class="car-arrow" type="button" data-carousel-prev aria-label="Outil précédent">‹</button>
       <div class="tabs" role="tablist" aria-label="Les outils RemplaCare">
+        <span class="tab-glider" aria-hidden="true"></span>
         <button class="tab" type="button" role="tab" id="tab-calendrier" data-tool="calendrier" aria-selected="true" aria-controls="panel-calendrier" tabindex="0" aria-label="Calendrier">
           <svg class="tab-ring" viewBox="0 0 88 88" aria-hidden="true" focusable="false"><path class="ring-path" pathLength="100" d="M44 2 H59 A27 27 0 0 1 86 29 V59 A27 27 0 0 1 59 86 H29 A27 27 0 0 1 2 59 V29 A27 27 0 0 1 29 2 Z"/></svg>
           {% icon "calendrier" %}
@@ -99,6 +100,15 @@ navCurrent: ""
 </section>
 
 <div class="home">
+<!-- ─────────── 1bis. OPTIMISÉ ─────────── -->
+<section class="intro" id="optimise">
+  <div class="intro-inner">
+    <h2>Optimisé pour les remplaçants travaillant sur plusieurs tournées</h2>
+    <p>Votre travail est de soigner, mais ne perdez pas de vue ce que vous devez gagner. RemplaCare comptabilise votre CA, afin que vous ayez du temps pour ce qui compte.</p>
+    <a class="intro-btn" href="#telecharger" data-download>Télécharger gratuitement</a>
+  </div>
+</section>
+
 <!-- ─────────── 2. PROBLÈME ─────────── -->
 <section id="probleme" class="problem">
   <div class="wrap narrow">

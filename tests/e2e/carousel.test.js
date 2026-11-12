@@ -171,3 +171,15 @@ test('pause cumulée : perte du focus avec la souris encore dessus', async () =>
   assert.notEqual(await page.getAttribute('[data-carousel]', 'data-paused'), null);
   await page.close();
 });
+
+test('Alt+Flèche n\'est pas capturée par le carrousel', async () => {
+  const page = await open({ fast: false });
+  const tool = await selected(page);
+  await page.locator('[role=tab][aria-selected="true"]').focus();
+  const notPrevented = await page.evaluate(() => document.activeElement.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'ArrowRight', altKey: true, bubbles: true, cancelable: true })));
+  assert.equal(notPrevented, true);
+  assert.equal(await selected(page), tool);
+  assert.equal(await page.evaluate(() => document.querySelector('[data-autoplay]').dataset.autoplay), 'on');
+  await page.close();
+});

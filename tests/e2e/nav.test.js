@@ -81,3 +81,21 @@ test('pas de débordement de la barre entre 900 et 1100 px', async () => {
     await page.close();
   }
 });
+
+test('menu mobile : focus clavier sur le premier lien, Échap rend le focus au burger', async () => {
+  const page = await open(375, 700);
+  const burger = page.locator('.nav-burger');
+  await burger.focus();
+  await page.keyboard.press('Enter');
+  assert.equal(await burger.getAttribute('aria-expanded'), 'true');
+  const actif = () => page.evaluate(() => document.activeElement.textContent.trim());
+  assert.equal(await actif(), 'Ordonnance');
+  for (const t of ['Simulateur de cotisation', 'Ressources', 'Nos Solutions']) {
+    await page.keyboard.press('Tab');
+    assert.equal(await actif(), t);
+  }
+  await page.keyboard.press('Escape');
+  assert.equal(await burger.getAttribute('aria-expanded'), 'false');
+  assert.equal(await page.evaluate(() => document.activeElement.classList.contains('nav-burger')), true);
+  await page.close();
+});

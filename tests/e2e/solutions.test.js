@@ -79,3 +79,9 @@ test('deux colonnes côte à côte sur grand écran', async () => {
   assert.ok(b.x > a.x + a.width - 1);
   await page.close();
 });
+
+test('titre du document', async () => {
+  const page = await open();
+  assert.equal(await page.title(), 'Nos solutions — RemplaCare');
+  await page.close();
+});

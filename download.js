@@ -60,11 +60,11 @@
     '<div class="dl-card" role="dialog" aria-modal="true" aria-labelledby="dlTitle">' +
       '<button class="dl-close" type="button" aria-label="Fermer">×</button>' +
       '<h2 id="dlTitle">Télécharger RemplaCare</h2>' +
-      '<p>Choisis ton téléphone</p>' +
+      '<p>Choisissez votre téléphone</p>' +
       '<a class="dl-btn dl-ios" href="' + APP_STORE + '" target="_blank" rel="noopener">' + apple + 'iOS</a>' +
       '<a class="dl-btn dl-android" href="' + APK + '">' + android + 'Android</a>' +
-      '<p class="dl-help" id="dlHelp" role="status">Le téléchargement démarre. Ouvre ensuite le fichier Remplacare.apk depuis tes téléchargements. ' +
-        'Si Android bloque l\'installation, autorise « Installer des applis inconnues » pour ton navigateur, puis rouvre le fichier.</p>' +
+      '<p class="dl-help" id="dlHelp" role="status">Le téléchargement démarre. Ouvrez ensuite le fichier Remplacare.apk depuis vos téléchargements. ' +
+        'Si Android bloque l\'installation, autorisez « Installer des applis inconnues » pour votre navigateur, puis rouvrez le fichier.</p>' +
     '</div>';
   document.body.appendChild(overlay);
 

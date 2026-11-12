@@ -38,6 +38,7 @@
   tabs.forEach(function (tab, k) {
     tab.addEventListener('click', function () { go(k, false); });
     tab.addEventListener('keydown', function (e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) { return; }
       var n = tabs.length, cur = carousel.getIndex(), target = null;
       if (e.key === 'ArrowRight') { target = (cur + 1) % n; }
       else if (e.key === 'ArrowLeft') { target = (cur - 1 + n) % n; }

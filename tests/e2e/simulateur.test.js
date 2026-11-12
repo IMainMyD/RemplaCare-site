@@ -31,6 +31,7 @@ test('la barre est masquée à l\'impression', async () => {
   const page = await open();
   await page.emulateMedia({ media: 'print' });
   assert.equal(await page.locator('.site-header').evaluate((e) => getComputedStyle(e).display), 'none');
+  assert.equal(await page.locator('.site-footer').evaluate((e) => getComputedStyle(e).display), 'none');
   await page.close();
 });
 

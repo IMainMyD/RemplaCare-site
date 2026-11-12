@@ -71,3 +71,21 @@ test('sur mobile, la barre d\'onglets colle sous l\'en-tête de page', async () 
   assert.ok(Math.abs(bas - haut) <= 1, `en-tête bas ${bas}, onglets haut ${haut}`);
   await page.close();
 });
+
+test('l\'export PDF dessine les filets de la prescription avec une couleur valide', async () => {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+  await page.route('**/vendor/html2canvas*', (r) => r.fulfill({
+    contentType: 'application/javascript',
+    body: 'window.html2canvas = (el, opts) => { opts.onclone(document); return Promise.resolve(document.createElement("canvas")); };',
+  }));
+  await page.route('**/vendor/jspdf*', (r) => r.fulfill({
+    contentType: 'application/javascript',
+    body: 'window.jspdf = { jsPDF: class { addImage() {} output() { return new Blob([""]); } } };',
+  }));
+  await page.goto(server.url + '/ordonnance');
+  await page.locator('#btnExport').click();
+  await page.waitForFunction(() => document.querySelector('.doc-presc-zone > div'));
+  const css = await page.locator('.doc-presc-zone > div').first().evaluate((e) => e.style.cssText);
+  assert.match(css, /border-top:\s*1px solid\s+(#|rgb)/, css);
+  await page.close();
+});

@@ -881,7 +881,7 @@ async function genererPdf() {
         for (let k = 1; k * pas <= zone.clientHeight + 1; k++) {
           const filet = d.createElement('div')
           filet.style.cssText = `position:absolute;left:0;right:0;top:${k * pas - 1}px;height:0;` +
-            `border-top:1px solid ${getComputedStyle(d.documentElement).getPropertyValue('--doc-filet')};z-index:-1`
+            `border-top:1px solid ${st.getPropertyValue('--doc-filet')};z-index:-1`
           zone.appendChild(filet)
         }
       }

@@ -9,13 +9,34 @@ test.after(async () => { await browser.close(); await server.close(); });
 
 const TOOLS = ['calendrier', 'moniteur', 'simulateur', 'trousse'];
 
-async function open({ fast = true, cycle = '300ms', ...opts } = {}) {
+const SHORT = '--t-out:40ms;--t-glide:40ms;--t-in:40ms';
+async function open({ fast = true, cycle = '300ms', times = SHORT, ...opts } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, ...opts });
   const page = await ctx.newPage();
   await page.goto(server.url + '/');
-  if (fast) await page.addStyleTag({ content: `:root{--cycle:${cycle}}` });
+  await page.addStyleTag({ content: `:root{${times}${fast ? `;--cycle:${cycle}` : ''}}` });
   return page;
 }
+// Phase « idle » atteinte, puis fins des transitions CSS du carré (rendu éventuellement en retard).
+const waitIdle = async (page, timeout = 3000) => {
+  await page.waitForFunction(
+    () => document.querySelector('[data-carousel]').getAttribute('data-phase') === 'idle', null, { timeout });
+  await page.evaluate(() => Promise.all(document.querySelector('.tab-glider').getAnimations().map((a) => a.finished)));
+};
+const recordPhases = (page) => page.evaluate(() => {
+  const root = document.querySelector('[data-carousel]');
+  window.__phases = [];
+  new MutationObserver(() => window.__phases.push(root.getAttribute('data-phase')))
+    .observe(root, { attributes: true, attributeFilter: ['data-phase'] });
+});
+const phases = async (page) => (await page.evaluate(() => window.__phases))
+  .filter((p, i, a) => i === 0 || p !== a[i - 1]);
+const visiblePanels = async (page) => {
+  const out = [];
+  for (const t of TOOLS) if (await page.isVisible('#panel-' + t)) out.push(t);
+  return out;
+};
+const left = async (page, sel) => (await page.locator(sel).boundingBox()).x;
 const selected = (page) => page.evaluate(() =>
   document.querySelector('[role=tab][aria-selected="true"]').dataset.tool);
 const waitSelected = (page, tool, timeout = 5000) => page.waitForFunction(
@@ -41,6 +62,7 @@ test('contrat ARIA : onglets et panneaux liés', async () => {
 test('un clic sur une icône affiche son panneau', async () => {
   const page = await open();
   await page.click('#tab-moniteur');
+  await waitIdle(page);
   assert.equal(await page.getAttribute('#tab-moniteur', 'aria-selected'), 'true');
   assert.equal(await page.getAttribute('#tab-moniteur', 'tabindex'), '0');
   assert.equal(await page.isVisible('#panel-moniteur'), true);
@@ -92,6 +114,7 @@ test('défilement automatique après le cycle', async () => {
 test('un clic arrête le défilement', async () => {
   const page = await open();
   await page.click('#tab-moniteur');
+  await waitIdle(page);
   await sleep(1200);
   assert.equal(await selected(page), 'moniteur');
   assert.equal(await page.getAttribute('[data-carousel]', 'data-autoplay'), 'off');
@@ -131,6 +154,7 @@ test('mouvement réduit : pas de défilement automatique', async () => {
   await sleep(1200);
   assert.equal(await selected(page), 'calendrier');
   assert.equal(await page.getAttribute('[data-carousel]', 'data-autoplay'), 'off');
+  assert.equal(await page.getAttribute('[data-carousel]', 'data-phase'), 'idle');
   const names = await page.locator('.ring-path').evaluateAll((els) => els.map((e) => getComputedStyle(e).animationName));
   assert.deepEqual(names, ['none', 'none', 'none', 'none']);
   await ctx.close();
@@ -181,5 +205,124 @@ test('Alt+Flèche n\'est pas capturée par le carrousel', async () => {
   assert.equal(notPrevented, true);
   assert.equal(await selected(page), tool);
   assert.equal(await page.evaluate(() => document.querySelector('[data-autoplay]').dataset.autoplay), 'on');
+  await page.close();
+});
+
+// ── Transition : fondu, glissement du carré, fondu ─────────────────────────
+test('séquence des phases : out, glide, in, idle', async () => {
+  const page = await open({ fast: false, times: '--t-out:120ms;--t-glide:120ms;--t-in:120ms' });
+  await recordPhases(page);
+  await page.click('#tab-moniteur');
+  await waitIdle(page);
+  assert.deepEqual(await phases(page), ['out', 'glide', 'in', 'idle']);
+  await page.close();
+});
+
+test('état final après transition', async () => {
+  const page = await open({ fast: false });
+  await page.click('#tab-simulateur');
+  await waitIdle(page);
+  assert.deepEqual(await page.locator('[role=tab][aria-selected="true"]').evaluateAll((e) => e.map((x) => x.dataset.tool)), ['simulateur']);
+  assert.deepEqual(await visiblePanels(page), ['simulateur']);
+  await page.mouse.move(5, 5);
+  const g = await left(page, '.tab-glider'), t = await left(page, '#tab-simulateur');
+  assert.ok(Math.abs(g - t) <= 1, `glider ${g} / onglet ${t}`);
+  assert.equal(await page.getAttribute('[data-carousel]', 'data-phase'), 'idle');
+  await page.close();
+});
+
+test('le carré prend la couleur de l\'outil actif', async () => {
+  const page = await open({ fast: false });
+  const expected = {
+    moniteur: 'rgb(160, 179, 82)', simulateur: 'rgb(217, 150, 126)',
+    trousse: 'rgb(242, 92, 5)', calendrier: 'rgb(194, 224, 242)',
+  };
+  for (const t of ['moniteur', 'simulateur', 'trousse', 'calendrier']) {
+    await page.click('#tab-' + t);
+    await waitIdle(page);
+    const st = await page.locator('.tab-glider').evaluate((e) => {
+      const c = getComputedStyle(e); return { bg: c.backgroundColor, border: c.borderTopColor };
+    });
+    assert.equal(st.bg, expected[t], t);
+    const m = st.border.match(/[\d.]+/g).map(Number);
+    assert.deepEqual(m.slice(0, 3), [255, 255, 255]);
+    assert.ok(m.length < 4 || m[3] >= 0.9, 'contour blanc opaque : ' + st.border);
+  }
+  await page.close();
+});
+
+test('les onglets inactifs sont transparents', async () => {
+  const page = await open({ fast: false });
+  await page.mouse.move(5, 5);
+  const alphas = await page.locator('[role=tab][aria-selected="false"]').evaluateAll((els) => els.map((e) => {
+    const m = getComputedStyle(e).backgroundColor.match(/[\d.]+/g).map(Number);
+    return m.length < 4 ? 1 : m[3];
+  }));
+  assert.equal(alphas.length, 3);
+  for (const a of alphas) assert.ok(a <= 0.2, 'alpha ' + a);
+  await page.close();
+});
+
+test('clics rapides : le dernier gagne', async () => {
+  const page = await open({ fast: false, times: '--t-out:150ms;--t-glide:150ms;--t-in:150ms' });
+  await page.click('#tab-moniteur');
+  await page.click('#tab-trousse');
+  await waitIdle(page);
+  assert.deepEqual(await page.locator('[role=tab][aria-selected="true"]').evaluateAll((e) => e.map((x) => x.dataset.tool)), ['trousse']);
+  assert.deepEqual(await visiblePanels(page), ['trousse']);
+  await page.mouse.move(5, 5);
+  const g = await left(page, '.tab-glider'), t = await left(page, '#tab-trousse');
+  assert.ok(Math.abs(g - t) <= 1, `glider ${g} / onglet ${t}`);
+  await page.close();
+});
+
+test('le défilement automatique passe par la transition', async () => {
+  const page = await open({ fast: false, times: '--t-out:100ms;--t-glide:100ms;--t-in:100ms' });
+  await recordPhases(page);
+  await page.addStyleTag({ content: ':root{--cycle:300ms}' });
+  await page.mouse.move(5, 5);
+  await waitSelected(page, 'moniteur');
+  await waitIdle(page);
+  const p = await phases(page);
+  assert.deepEqual(p.slice(0, 4), ['out', 'glide', 'in', 'idle']);
+  assert.equal(await selected(page), 'moniteur');
+  await page.close();
+});
+
+for (const width of [1280, 375]) {
+  test(`hauteurs stables entre les quatre outils (${width}px)`, async () => {
+    const page = await open({ fast: false, viewport: { width, height: 900 } });
+    const heights = [], stages = [];
+    for (const t of TOOLS) {
+      await page.click('#tab-' + t, { force: true });
+      await waitIdle(page);
+      heights.push((await page.locator('#panel-' + t).boundingBox()).height);
+      stages.push((await page.locator('.stage').boundingBox()).height);
+    }
+    for (const h of heights) assert.ok(Math.abs(h - heights[0]) <= 1, 'cartes ' + heights);
+    for (const h of stages) assert.ok(Math.abs(h - stages[0]) <= 1, 'scène ' + stages);
+    await page.close();
+  });
+}
+
+test('mouvement réduit : bascule instantanée', async () => {
+  const page = await open({ fast: false, reducedMotion: 'reduce', times: '--t-out:3s;--t-glide:3s;--t-in:3s' });
+  await page.click('#tab-moniteur');
+  assert.equal(await page.getAttribute('[data-carousel]', 'data-phase'), 'idle');
+  assert.equal(await page.isVisible('#panel-moniteur'), true);
+  assert.equal(await page.isVisible('#panel-calendrier'), false);
+  assert.equal(await page.locator('.tab-glider').evaluate((e) => getComputedStyle(e).transitionDuration), '0s');
+  await page.close();
+});
+
+test('l\'anneau ne démarre qu\'une fois la transition terminée', async () => {
+  const page = await open({ fast: false, times: '--t-out:300ms;--t-glide:300ms;--t-in:300ms' });
+  await page.mouse.move(5, 5);
+  await page.addStyleTag({ content: ':root{--cycle:300ms}' });
+  await page.waitForFunction(() => document.querySelector('[data-carousel]').getAttribute('data-phase') !== 'idle', null, { timeout: 3000 });
+  const ring = () => page.locator('#tab-moniteur .ring-path').evaluate((e) => getComputedStyle(e).animationName);
+  assert.equal(await ring(), 'none');
+  await waitIdle(page);
+  assert.equal(await ring(), 'ring');
   await page.close();
 });

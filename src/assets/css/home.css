@@ -1,5 +1,8 @@
 :root {
   --cycle: 6s;
+  --t-out: 250ms;
+  --t-glide: 400ms;
+  --t-in: 300ms;
   --stage-bg:
     radial-gradient(900px 520px at 8% 4%, var(--powder) 0%, rgba(194,224,242,0) 70%),
     radial-gradient(800px 520px at 95% 40%, #E8D3D6 0%, rgba(232,211,214,0) 70%),
@@ -37,19 +40,39 @@
 /* ── Carrousel ──────────────────────────────────────────── */
 .stage .carousel { max-width: 940px; margin: 64px auto 0; }
 .stage .tabs-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 22px; }
-.stage .tabs { display: flex; gap: 14px; }
+.stage .tabs {
+  --tab-size: 76px; --tab-radius: 24px;
+  position: relative; z-index: 2; display: flex; gap: 14px;
+}
 .stage .tab {
-  position: relative; width: 76px; height: 76px; padding: 0; border: 0; cursor: pointer;
-  border-radius: 24px; background: rgba(255,255,255,.42); color: var(--navy);
+  position: relative; z-index: 1; width: var(--tab-size); height: var(--tab-size); padding: 0; cursor: pointer;
+  border: 1.5px solid rgba(255,255,255,.55); border-radius: var(--tab-radius);
+  background: transparent; color: var(--navy);
   display: flex; align-items: center; justify-content: center;
-  transition: background .2s;
+  transition: background-color .2s;
 }
-.stage .tab:hover { background: rgba(255,255,255,.7); }
-.stage .tab[aria-selected="true"] { background: #fff; }
-.stage .tab[aria-selected="true"]::after {
-  content: ''; position: absolute; left: 50%; top: 100%; width: 34px; height: 22px;
-  margin-left: -17px; background: #fff;
+.stage .tab:hover { background: rgba(255,255,255,.28); }
+
+/* Carré qui glisse d'une icône à l'autre ; sa « languette » rejoint la carte. */
+.stage .tab-glider {
+  position: absolute; z-index: 0; left: 0; top: 0; box-sizing: border-box;
+  width: var(--tab-size); height: var(--tab-size); border-radius: var(--tab-radius);
+  border: 2px solid rgba(255,255,255,.95); background-clip: padding-box;
+  background-color: var(--powder); box-shadow: 0 4px 14px rgba(30, 50, 74, .18);
+  transform: translateX(var(--glider-x, 0px)); pointer-events: none;
+  transition: transform var(--t-glide) ease-in-out, background-color var(--t-glide) ease-in-out;
 }
+.stage .tab-glider::after {
+  content: ''; position: absolute; left: 50%; top: 100%; width: 34px; height: 24px;
+  margin-left: -17px; background: #fff; opacity: 1; transition: opacity var(--t-in) ease;
+}
+.stage [data-carousel][data-phase="out"] .tab-glider::after { transition-duration: var(--t-out); }
+.stage [data-carousel][data-phase="out"] .tab-glider::after,
+.stage [data-carousel][data-phase="glide"] .tab-glider::after { opacity: 0; }
+.stage [data-active-tool="calendrier"] .tab-glider { background-color: var(--powder); }
+.stage [data-active-tool="moniteur"] .tab-glider { background-color: var(--olive); }
+.stage [data-active-tool="simulateur"] .tab-glider { background-color: var(--salmon); }
+.stage [data-active-tool="trousse"] .tab-glider { background-color: var(--orange); }
 .stage .tab:focus-visible, .stage .car-arrow:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; }
 .stage .tab .ico { width: 36px; height: 36px; position: relative; z-index: 1; }
 .stage .tab-ring {
@@ -60,14 +83,15 @@
   fill: none; stroke: var(--green); stroke-width: 3.5; stroke-linecap: round;
   stroke-dasharray: 100; stroke-dashoffset: 100;
 }
-.stage .tab[aria-selected="true"] .ring-path { animation: ring var(--cycle, 6s) linear forwards; }
+.stage [data-carousel][data-phase="idle"] .tab[aria-selected="true"] .ring-path { animation: ring var(--cycle, 6s) linear forwards; }
 @keyframes ring { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
-.stage [data-carousel][data-paused] .ring-path { animation-play-state: paused; }
-.stage [data-autoplay="off"] .ring-path { animation: none; }
+.stage [data-carousel][data-paused][data-phase] .tab .ring-path { animation-play-state: paused; }
+.stage [data-carousel][data-autoplay="off"] .tab .ring-path { animation: none; }
 .stage [data-autoplay="off"] .tab-ring { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .stage .ring-path, .stage .tab[aria-selected="true"] .ring-path { animation: none; }
+  .stage .ring-path, .stage [data-carousel] .tab[aria-selected="true"] .ring-path { animation: none; }
   .stage .tab-ring { display: none; }
+  .stage .tab-glider, .stage .tab-glider::after, .stage .tab, .stage .panel { transition: none; }
 }
 .stage .car-arrow {
   width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer;
@@ -80,7 +104,13 @@
   background: #fff; border-radius: 32px; padding: 44px 48px;
   box-shadow: 0 30px 70px rgba(30, 50, 74, .16);
 }
-html.js .stage .panel[hidden] { display: none; }
+/* Mode JS : toutes les cartes dans la même cellule, la plus haute donne la hauteur. */
+html.js .stage .panels { display: grid; }
+html.js .stage .panels > .panel { grid-area: 1 / 1; align-self: stretch; margin: 0; transition: opacity var(--t-in) ease; }
+html.js .stage .panel[hidden] { display: grid; visibility: hidden; opacity: 0; pointer-events: none; }
+html.js .stage [data-phase="out"] .panel:not([hidden]),
+html.js .stage [data-phase="glide"] .panel:not([hidden]) { opacity: 0; }
+html.js .stage [data-phase="out"] .panel:not([hidden]) { transition-duration: var(--t-out); }
 html:not(.js) .stage .panel { display: grid; margin-bottom: 24px; }
 html:not(.js) .stage .tabs-row { display: none; }
 .stage .panel-tool {
@@ -117,7 +147,7 @@ html:not(.js) .stage .tabs-row { display: none; }
   .stage .carousel { margin-top: 44px; }
   .stage .tabs-row { gap: 4px; }
   .stage .tabs { gap: 8px; }
-  .stage .tab { width: 60px; height: 60px; border-radius: 20px; }
+  .stage .tabs { --tab-size: 60px; --tab-radius: 20px; }
   .stage .tab .ico { width: 30px; height: 30px; }
   .stage .tab-ring { width: 70px; height: 70px; margin: -35px 0 0 -35px; }
 }
@@ -239,3 +269,19 @@ html:not(.js) .home .reveal { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .home .reveal { opacity: 1; transform: none; }
 }
+
+/* ── Section « Optimisé » (sous le carrousel) ───────────── */
+.home .intro { background: #fff; text-align: center; padding: 96px 24px; }
+.home .intro-inner { max-width: 760px; margin: 0 auto; }
+.home .intro h2 {
+  font-family: 'Fraunces', Georgia, serif; font-size: clamp(30px, 4vw, 46px); font-weight: 600;
+  line-height: 1.15; color: var(--navy); text-wrap: balance; margin-bottom: 22px;
+}
+.home .intro p { font-size: 19px; line-height: 1.6; color: var(--muted); margin: 0 auto 34px; max-width: 640px; }
+.home .intro-btn {
+  display: inline-block; font-size: 16px; font-weight: 500; line-height: 1.3;
+  padding: 14px 30px; border-radius: 999px; text-decoration: none;
+  border: 1.5px solid var(--navy); background: var(--navy); color: #fff; transition: background .2s;
+}
+.home .intro-btn:hover { background: var(--navy-deep); }
+@media (max-width: 640px) { .home .intro { padding: 64px 20px; } }

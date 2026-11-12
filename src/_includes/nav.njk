@@ -1,0 +1,17 @@
+<header class="site-header">
+  <nav class="site-nav" aria-label="Navigation principale">
+    <a class="nav-brand" href="/"><img src="/assets/icons/logo.svg" alt="" width="30" height="30"><span>remplacare</span></a>
+    <div class="nav-menu" id="nav-menu">
+      <a class="nav-link" data-nav="ordonnance" href="/ordonnance"{% if navCurrent == "ordonnance" %} aria-current="page"{% endif %}>Ordonnance</a>
+      <a class="nav-link" data-nav="simulateur" href="/simulateur"{% if navCurrent == "simulateur" %} aria-current="page"{% endif %}>Simulateur de cotisation</a>
+      <a class="nav-link" data-nav="ressources" href="/ressources"{% if navCurrent == "ressources" %} aria-current="page"{% endif %}>Ressources</a>
+      <a class="nav-link" data-nav="solutions" href="/nos-solutions"{% if navCurrent == "solutions" %} aria-current="page"{% endif %}>Nos Solutions</a>
+      <a class="pill nav-contact-mobile nav-contact-alt" href="mailto:contact@remplacare.fr">Nous contacter</a>
+    </div>
+    <div class="nav-actions">
+      <a class="pill nav-download" href="#telecharger" data-download>Télécharger</a>
+      <a class="pill nav-contact" href="mailto:contact@remplacare.fr">Nous contacter</a>
+      <button class="nav-burger" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Menu"><span></span></button>
+    </div>
+  </nav>
+</header>

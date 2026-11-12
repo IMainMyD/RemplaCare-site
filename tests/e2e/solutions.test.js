@@ -20,6 +20,9 @@ test('deux colonnes avec les prix', async () => {
   const free = await text(page, '.plan-free');
   const pro = await text(page, '.plan-pro');
   assert.ok(free.includes('Gratuit'));
+  const dl = page.locator('.plan-free [data-download]');
+  assert.equal(await dl.count(), 1);
+  assert.equal(norm(await dl.innerText()), "Télécharger l'app");
   for (const s of ['8,99 €', '79 €', 'par mois', 'par an']) assert.ok(pro.includes(s), s);
   await page.close();
 });
@@ -30,7 +33,7 @@ test('contenu des colonnes', async () => {
   const pro = await text(page, '.plan-pro');
   for (const s of ['Un objectif par an', 'Import de calendrier', "Générateur d'ordonnance"]) assert.ok(free.includes(s), s);
   assert.ok(!free.includes('Objectifs illimités'));
-  for (const s of ['Objectifs illimités', 'cotisations à provisionner']) assert.ok(pro.includes(s), s);
+  for (const s of ['Objectifs illimités', 'cotisations à provisionner', '27 %', 'Tout le Gratuit']) assert.ok(pro.includes(s), s);
   await page.close();
 });
 

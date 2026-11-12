@@ -1,0 +1,52 @@
+---
+title: Nos solutions
+description: "Découvrez les offres RemplaCare : une version gratuite pour piloter votre activité de remplaçant et une version Pro pour aller plus loin."
+navCurrent: solutions
+---
+{% extends "base.njk" %}
+{% block head %}
+<link rel="stylesheet" href="/assets/css/solutions.css">
+{% endblock %}
+
+{% block content %}
+<div class="solutions">
+  <div class="wrap sol-head">
+    <h1>Nos solutions</h1>
+    <p>RemplaCare vous accompagne dans l'organisation de votre activité de remplaçant. Commencez gratuitement, et passez au Pro lorsque vous souhaitez aller plus loin.</p>
+  </div>
+
+  <div class="wrap plans">
+    <section class="plan plan-free" aria-labelledby="plan-free-title">
+      <h2 id="plan-free-title">Gratuit</h2>
+      <p class="plan-price"><span class="plan-amount">0 €</span></p>
+      <ul class="plan-list">
+        <li id="calendrier"><strong>Calendrier</strong></li>
+        <li>Import de calendrier</li>
+        <li>Suivi du CA et des paiements</li>
+        <li id="moniteur"><strong>Moniteur</strong></li>
+        <li><strong>Trousse de secours</strong>
+          <ul>
+            <li>Générateur d'ordonnance</li>
+            <li>Guide de cotations</li>
+            <li>Astuces</li>
+          </ul>
+        </li>
+        <li>Un objectif par an</li>
+      </ul>
+      <a class="plan-cta plan-cta-free" href="#telecharger" data-download>Télécharger l'app</a>
+    </section>
+
+    <section class="plan plan-pro" aria-labelledby="plan-pro-title">
+      <h2 id="plan-pro-title">Pro <span class="soon"><span class="soon-dot" aria-hidden="true"></span>Bientôt</span></h2>
+      <p class="plan-price"><span class="plan-amount">8,99 €</span> <span class="plan-per">par mois</span></p>
+      <p class="plan-alt">ou 79 € par an — soit environ 27 % d'économie</p>
+      <ul class="plan-list">
+        <li>Tout le Gratuit</li>
+        <li>Simulateur détaillé : cotisations à provisionner chaque mois</li>
+        <li>Objectifs illimités</li>
+      </ul>
+      <a class="plan-cta plan-cta-pro" href="mailto:contact@remplacare.fr?subject=Liste%20d%27attente%20Pro">Bientôt disponible</a>
+    </section>
+  </div>
+</div>
+{% endblock %}

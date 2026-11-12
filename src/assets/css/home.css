@@ -43,8 +43,8 @@
 .stage .tab:hover { background: rgba(255,255,255,.7); }
 .stage .tab[aria-selected="true"] { background: #fff; }
 .stage .tab[aria-selected="true"]::after {
-  content: ''; position: absolute; left: 50%; top: 100%; width: 34px; height: 26px;
-  margin-left: -17px; background: linear-gradient(180deg, #fff, #fff);
+  content: ''; position: absolute; left: 50%; top: 100%; width: 34px; height: 22px;
+  margin-left: -17px; background: #fff;
 }
 .stage .tab:focus-visible, .stage .car-arrow:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; }
 .stage .tab .ico { width: 36px; height: 36px; position: relative; z-index: 1; }
@@ -58,6 +58,13 @@
 }
 .stage .tab[aria-selected="true"] .ring-path { animation: ring var(--cycle, 6s) linear forwards; }
 @keyframes ring { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+.stage [data-carousel][data-paused] .ring-path { animation-play-state: paused; }
+.stage [data-autoplay="off"] .ring-path { animation: none; }
+.stage [data-autoplay="off"] .tab-ring { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .stage .ring-path, .stage .tab[aria-selected="true"] .ring-path { animation: none; }
+  .stage .tab-ring { display: none; }
+}
 .stage .car-arrow {
   width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer;
   color: var(--navy); font-size: 34px; line-height: 1; border-radius: 50%; padding: 0 0 4px;

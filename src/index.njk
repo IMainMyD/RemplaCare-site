@@ -20,7 +20,7 @@ navCurrent: ""
     </div>
   </div>
 
-  <div class="carousel" data-carousel>
+  <div class="carousel" data-carousel data-autoplay="on">
     <div class="tabs-row">
       <button class="car-arrow" type="button" data-carousel-prev aria-label="Outil précédent">‹</button>
       <div class="tabs" role="tablist" aria-label="Les outils RemplaCare">
@@ -45,7 +45,7 @@ navCurrent: ""
     </div>
 
     <div class="panels">
-      <section class="panel" role="tabpanel" id="panel-calendrier" aria-labelledby="tab-calendrier">
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-calendrier" aria-labelledby="tab-calendrier">
         <div class="panel-text">
           <p class="panel-tool"><span class="panel-badge">{% icon "calendrier" %}</span>Calendrier</p>
           <h3>Organisez votre vie grâce à un calendrier répondant à vos besoins.</h3>
@@ -58,7 +58,7 @@ navCurrent: ""
         </div>
         <div class="panel-visual">[ visuel de l'app ]</div>
       </section>
-      <section class="panel" role="tabpanel" id="panel-moniteur" aria-labelledby="tab-moniteur" hidden>
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-moniteur" aria-labelledby="tab-moniteur" hidden>
         <div class="panel-text">
           <p class="panel-tool"><span class="panel-badge">{% icon "moniteur" %}</span>Moniteur</p>
           <h3>Suivez quotidiennement votre activité</h3>
@@ -71,7 +71,7 @@ navCurrent: ""
         </div>
         <div class="panel-visual">[ visuel de l'app ]</div>
       </section>
-      <section class="panel" role="tabpanel" id="panel-simulateur" aria-labelledby="tab-simulateur" hidden>
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-simulateur" aria-labelledby="tab-simulateur" hidden>
         <div class="panel-text">
           <p class="panel-tool"><span class="panel-badge">{% icon "simulateur" %}</span>Simulateur de cotisation</p>
           <h3>Ne craignez plus les rattrapages et anticipez pour ne plus subir</h3>
@@ -83,7 +83,7 @@ navCurrent: ""
         </div>
         <div class="panel-visual">[ visuel de l'app ]</div>
       </section>
-      <section class="panel" role="tabpanel" id="panel-trousse" aria-labelledby="tab-trousse" hidden>
+      <section class="panel" role="tabpanel" tabindex="0" id="panel-trousse" aria-labelledby="tab-trousse" hidden>
         <div class="panel-text">
           <p class="panel-tool"><span class="panel-badge">{% icon "trousse" %}</span>Trousse de secours</p>
           <h3>Des outils à votre disposition</h3>
@@ -358,6 +358,8 @@ navCurrent: ""
 {% endblock %}
 
 {% block scripts %}
+<script src="/assets/js/carousel-core.js" defer></script>
+<script src="/assets/js/carousel.js" defer></script>
 <script>
 (function(){
   if(!('IntersectionObserver' in window)){

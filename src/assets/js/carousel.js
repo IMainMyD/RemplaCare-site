@@ -56,7 +56,13 @@
 
   // Pauses survol / focus.
   function pause() { root.setAttribute('data-paused', ''); }
-  function resume() { root.removeAttribute('data-paused'); }
+  function resume(e) {
+    if (e && e.type === 'focusout' && e.relatedTarget && root.contains(e.relatedTarget)) { return; }
+    if (root.matches(':hover')) { return; }
+    var a = document.activeElement;
+    if (a && a !== document.body && root.contains(a) && !(e && e.type === 'focusout' && e.target === a)) { return; }
+    root.removeAttribute('data-paused');
+  }
   root.addEventListener('mouseenter', pause);
   root.addEventListener('mouseleave', resume);
   root.addEventListener('focusin', pause);

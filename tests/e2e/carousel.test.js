@@ -148,3 +148,26 @@ test('balayage sur mobile', async () => {
   assert.equal(await page.getAttribute('[data-carousel]', 'data-autoplay'), 'off');
   await page.close();
 });
+
+test('pause cumulée : sortie de la souris avec le focus encore dedans', async () => {
+  const page = await open({ cycle: '1s' });
+  await page.mouse.move(5, 5);
+  await page.focus('#tab-calendrier');
+  await page.hover('[data-carousel]');
+  await page.mouse.move(5, 5);
+  await sleep(3200);
+  assert.equal(await selected(page), 'calendrier');
+  assert.notEqual(await page.getAttribute('[data-carousel]', 'data-paused'), null);
+  await page.close();
+});
+
+test('pause cumulée : perte du focus avec la souris encore dessus', async () => {
+  const page = await open({ cycle: '1s' });
+  await page.hover('[data-carousel]');
+  await page.focus('#tab-calendrier');
+  await page.evaluate(() => document.activeElement.blur());
+  await sleep(3200);
+  assert.equal(await selected(page), 'calendrier');
+  assert.notEqual(await page.getAttribute('[data-carousel]', 'data-paused'), null);
+  await page.close();
+});

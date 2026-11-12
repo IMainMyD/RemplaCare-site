@@ -1,0 +1,29 @@
+{
+  "name": "remplacare-site",
+  "version": "1.0.0",
+  "description": "",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "eleventy",
+    "test": "npm run build && node --test tests/*.test.js",
+    "test:e2e": "npm run build && node --test tests/e2e/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IMainMyD/RemplaCare-site.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/IMainMyD/RemplaCare-site/issues"
+  },
+  "homepage": "https://github.com/IMainMyD/RemplaCare-site#readme",
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0"
+  },
+  "private": true
+}

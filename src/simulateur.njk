@@ -7,7 +7,7 @@ navCurrent: simulateur
 {% extends "base.njk" %}
 {% block head %}
 <style>
-  .wrap{--radius-l:24px;--radius-m:18px;--radius-s:12px;max-width:680px;margin:0 auto;padding:32px 20px 64px}
+  .sim-wrap{--radius-l:24px;--radius-m:18px;--radius-s:12px;max-width:680px;margin:0 auto;padding:32px 20px 64px}
   h1{font-family:'Fraunces',Georgia,serif;font-weight:600;font-size:30px;line-height:1.2;margin:0 0 8px}
   .sub{color:var(--muted);font-size:15px;margin:0 0 28px}
   .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius-l);
@@ -60,7 +60,7 @@ navCurrent: simulateur
 </style>
 {% endblock %}
 {% block content %}
-<div class="wrap">
+<div class="sim-wrap">
 
   <h1>Combien vous reste-t-il vraiment ?</h1>
   <p class="sub">Estimez vos cotisations URSSAF et CARPIMKO d'infirmier libéral remplaçant,

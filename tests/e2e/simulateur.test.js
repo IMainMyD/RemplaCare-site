@@ -40,3 +40,20 @@ test('la mention sur l\'impôt est conservée', async () => {
   assert.ok(text.includes('Il ne calcule pas l\'impôt sur le revenu'));
   await page.close();
 });
+
+test('le conteneur du pied de page n\'est pas restylé par la page', async () => {
+  const mesure = async (chemin) => {
+    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    await page.goto(server.url + chemin);
+    const r = await page.locator('.site-footer .wrap').evaluate((e) => {
+      const c = getComputedStyle(e);
+      return { maxWidth: c.maxWidth, paddingTop: c.paddingTop };
+    });
+    await page.close();
+    return r;
+  };
+  const sim = await mesure('/simulateur');
+  const ref = await mesure('/ressources');
+  assert.notEqual(sim.maxWidth, '680px');
+  assert.deepEqual(sim, ref);
+});

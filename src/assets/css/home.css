@@ -1,8 +1,7 @@
 :root {
   --cycle: 6s;
-  --t-out: 250ms;
-  --t-glide: 400ms;
-  --t-in: 300ms;
+  --t-switch: 350ms;
+  --band: 20px;
   --stage-bg:
     radial-gradient(900px 520px at 8% 4%, var(--powder) 0%, rgba(194,224,242,0) 70%),
     radial-gradient(800px 520px at 95% 40%, #E8D3D6 0%, rgba(232,211,214,0) 70%),
@@ -12,8 +11,9 @@
 
 /* ── Scène : dégradé + hero + carrousel ─────────────────── */
 .stage {
-  margin-top: calc(-1 * var(--nav-h));
-  padding: calc(var(--nav-h) + 72px) 24px 96px;
+  margin: var(--band);
+  border-radius: 32px;
+  padding: 56px 24px 96px;
   background: var(--stage-bg);
   overflow-x: clip;
 }
@@ -60,15 +60,12 @@
   border: 2px solid rgba(255,255,255,.95); background-clip: padding-box;
   background-color: var(--powder); box-shadow: 0 4px 14px rgba(30, 50, 74, .18);
   transform: translateX(var(--glider-x, 0px)); pointer-events: none;
-  transition: transform var(--t-glide) ease-in-out, background-color var(--t-glide) ease-in-out;
+  transition: transform var(--t-switch) ease-in-out, background-color var(--t-switch) ease-in-out;
 }
 .stage .tab-glider::after {
   content: ''; position: absolute; left: 50%; top: 100%; width: 34px; height: 24px;
-  margin-left: -17px; background: #fff; opacity: 1; transition: opacity var(--t-in) ease;
+  margin-left: -17px; background: #fff;
 }
-.stage [data-carousel][data-phase="out"] .tab-glider::after { transition-duration: var(--t-out); }
-.stage [data-carousel][data-phase="out"] .tab-glider::after,
-.stage [data-carousel][data-phase="glide"] .tab-glider::after { opacity: 0; }
 .stage [data-active-tool="calendrier"] .tab-glider { background-color: var(--powder); }
 .stage [data-active-tool="moniteur"] .tab-glider { background-color: var(--olive); }
 .stage [data-active-tool="simulateur"] .tab-glider { background-color: var(--salmon); }
@@ -91,7 +88,8 @@
 @media (prefers-reduced-motion: reduce) {
   .stage .ring-path, .stage [data-carousel] .tab[aria-selected="true"] .ring-path { animation: none; }
   .stage .tab-ring { display: none; }
-  .stage .tab-glider, .stage .tab-glider::after, .stage .tab, .stage .panel { transition: none; }
+  .stage .tab-glider, .stage .tab { transition: none; }
+  html.js .stage .panels > .panel, html.js .stage .panel[hidden] { transition: none; }
 }
 .stage .car-arrow {
   width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer;
@@ -106,11 +104,12 @@
 }
 /* Mode JS : toutes les cartes dans la même cellule, la plus haute donne la hauteur. */
 html.js .stage .panels { display: grid; }
-html.js .stage .panels > .panel { grid-area: 1 / 1; align-self: stretch; margin: 0; transition: opacity var(--t-in) ease; }
-html.js .stage .panel[hidden] { display: grid; visibility: hidden; opacity: 0; pointer-events: none; }
-html.js .stage [data-phase="out"] .panel:not([hidden]),
-html.js .stage [data-phase="glide"] .panel:not([hidden]) { opacity: 0; }
-html.js .stage [data-phase="out"] .panel:not([hidden]) { transition-duration: var(--t-out); }
+html.js .stage .panels > .panel { grid-area: 1 / 1; align-self: stretch; margin: 0; transition: opacity var(--t-switch) ease-in-out; }
+/* Fondu enchaîné : l'ancienne carte s'efface (visibility retardée), la nouvelle apparaît. */
+html.js .stage .panel[hidden] {
+  display: grid; visibility: hidden; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-switch) ease-in-out, visibility 0s linear var(--t-switch);
+}
 html:not(.js) .stage .panel { display: grid; margin-bottom: 24px; }
 html:not(.js) .stage .tabs-row { display: none; }
 .stage .panel-tool {
@@ -141,7 +140,7 @@ html:not(.js) .stage .tabs-row { display: none; }
   .stage .panel-visual { min-height: 220px; }
 }
 @media (max-width: 640px) {
-  .stage { padding: calc(var(--nav-h) + 40px) 16px 64px; }
+  .stage { padding: 28px 16px 64px; }
   .stage .hero h1 { font-size: 36px; }
   .stage .hero-sub { font-size: 20px; }
   .stage .carousel { margin-top: 44px; }
@@ -191,7 +190,7 @@ html:not(.js) .stage .tabs-row { display: none; }
   color: var(--navy); background: #EAF2EE; padding: 6px 12px; border-radius: 20px;
 }
 
-.home .cta-band { background: var(--stage-bg); color: var(--navy); text-align: center; padding: 96px 0; }
+.home .cta-band { background: var(--stage-bg); color: var(--navy); text-align: center; padding: 96px 0; margin: 0 var(--band) var(--band); border-radius: 32px; }
 .home .cta-band h2 { color: var(--navy); }
 .home .cta-band p { color: var(--navy); margin-bottom: 30px; font-size: 18px; line-height: 1.6; }
 .home .cta-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; }
@@ -285,3 +284,6 @@ html:not(.js) .home .reveal { opacity: 1; transform: none; }
 }
 .home .intro-btn:hover { background: var(--navy-deep); }
 @media (max-width: 640px) { .home .intro { padding: 64px 20px; } }
+
+/* Bandeaux blancs autour des panneaux dégradés : uniquement sur la page d'accueil. */
+body:has(.stage) { background: #fff; }

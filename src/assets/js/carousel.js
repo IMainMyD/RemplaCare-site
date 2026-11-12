@@ -8,22 +8,21 @@
   var carousel = window.RemplaCareCarousel.createCarousel({ count: tabs.length });
 
   var glider = root.querySelector('.tab-glider');
-  var shown = carousel.getIndex();   // carte actuellement affichée (ou en cours de départ)
+  var shown = carousel.getIndex();   // carte affichée
   var gliderAt = shown;              // onglet sous le carré
-  var pending = null;                // index cible d'une transition en cours
-  var timers = [];
+  var timer = null;
 
   function reducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
-  function cssMs(name) {
-    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  // Durée du mouvement (ms) ; vide, NaN ou 0 : bascule instantanée.
+  function switchMs() {
+    var v = getComputedStyle(document.documentElement).getPropertyValue('--t-switch').trim();
     var n = parseFloat(v);
     if (!(n > 0)) { return 0; }
     return /ms$/.test(v) ? n : (/s$/.test(v) ? n * 1000 : n);
   }
   function setPhase(p) { root.setAttribute('data-phase', p); }
-  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
 
   function select(i) {
     tabs.forEach(function (tab, k) {
@@ -48,47 +47,22 @@
     void glider.offsetWidth;
     glider.style.transition = '';
   }
-  // Termine immédiatement la transition en cours : état final engagé.
-  function finish() {
-    if (pending === null) { return; }
-    var t = pending;
-    pending = null;
-    clearTimers();
-    showPanel(t);
-    placeGlider(t);
-    setPhase('idle');
-  }
 
-  // Fondu sortant, glissement du carré, fondu entrant ; le dernier changement gagne.
+  // Un seul mouvement : les transitions CSS font le fondu enchaîné et le glissement ;
+  // le dernier changement gagne (les transitions se réorientent d'elles-mêmes).
   function show(i) {
-    finish();
     select(i);
-    var tOut = cssMs('--t-out'), tGlide = cssMs('--t-glide'), tIn = cssMs('--t-in');
     if (i === shown && gliderAt === i) { return; }
-    if (reducedMotion() || tOut + tGlide + tIn === 0) {
-      showPanel(i); placeGlider(i); setPhase('idle');
-      return;
-    }
-    pending = i;
-    setPhase('out');
-    timers.push(setTimeout(function () {
-      setPhase('glide');
-      placeGlider(i);
-      timers.push(setTimeout(function () {
-        showPanel(i);
-        setPhase('in');
-        timers.push(setTimeout(function () { pending = null; setPhase('idle'); }, tIn));
-      }, tGlide));
-    }, tOut));
-  }
-
-  function stopAutoplay() {
-    carousel.userInteracted();
-    root.setAttribute('data-autoplay', 'off');
+    var t = switchMs();
+    clearTimeout(timer);
+    placeGlider(i);
+    showPanel(i);
+    if (reducedMotion() || t === 0) { setPhase('idle'); return; }
+    setPhase('moving');
+    timer = setTimeout(function () { setPhase('idle'); }, t);
   }
 
   function go(i, focus) {
-    stopAutoplay();
     show(carousel.goTo(i));
     if (focus) { tabs[carousel.getIndex()].focus(); }
   }
@@ -97,7 +71,7 @@
   root.addEventListener('animationend', function (e) {
     if (!e.target.classList || !e.target.classList.contains('ring-path')) { return; }
     if (e.target.closest('[role=tab]') !== tabs[carousel.getIndex()]) { return; }
-    if (pending !== null) { return; }
+    if (root.getAttribute('data-phase') !== 'idle') { return; }
     var n = carousel.tick();
     if (n !== null) { show(n); }
   });
@@ -119,22 +93,18 @@
 
   var prev = root.querySelector('[data-carousel-prev]');
   var next = root.querySelector('[data-carousel-next]');
-  if (prev) { prev.addEventListener('click', function () { stopAutoplay(); show(carousel.prev()); }); }
-  if (next) { next.addEventListener('click', function () { stopAutoplay(); show(carousel.next()); }); }
+  if (prev) { prev.addEventListener('click', function () { show(carousel.prev()); }); }
+  if (next) { next.addEventListener('click', function () { show(carousel.next()); }); }
 
-  // Pauses survol / focus.
-  function pause() { root.setAttribute('data-paused', ''); }
-  function resume(e) {
-    if (e && e.type === 'focusout' && e.relatedTarget && root.contains(e.relatedTarget)) { return; }
-    if (root.matches(':hover')) { return; }
-    var a = document.activeElement;
-    if (a && a !== document.body && root.contains(a) && !(e && e.type === 'focusout' && e.target === a)) { return; }
-    root.removeAttribute('data-paused');
-  }
-  root.addEventListener('mouseenter', pause);
-  root.addEventListener('mouseleave', resume);
-  root.addEventListener('focusin', pause);
-  root.addEventListener('focusout', resume);
+  // Seule pause : le focus clavier à l'intérieur d'une carte (pas les onglets, pas le survol).
+  function inPanel(el) { return !!(el && el.closest && el.closest('.panel') && root.contains(el)); }
+  root.addEventListener('focusin', function (e) {
+    if (inPanel(e.target) && e.target.matches(':focus-visible')) { root.setAttribute('data-paused', ''); }
+    else if (!inPanel(e.target)) { root.removeAttribute('data-paused'); }
+  });
+  root.addEventListener('focusout', function (e) {
+    if (!inPanel(e.relatedTarget)) { root.removeAttribute('data-paused'); }
+  });
 
   // Balayage horizontal.
   var sx = null, sy = null;
@@ -146,13 +116,14 @@
     var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
     sx = sy = null;
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-      stopAutoplay();
       show(dx < 0 ? carousel.next() : carousel.prev());
     }
   }, { passive: true });
 
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    stopAutoplay();
+  // Mouvement réduit : pas de défilement automatique.
+  if (reducedMotion()) {
+    carousel.userInteracted();
+    root.setAttribute('data-autoplay', 'off');
   }
   select(carousel.getIndex());
   showPanel(carousel.getIndex());

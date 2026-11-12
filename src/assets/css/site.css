@@ -18,7 +18,7 @@
   color: var(--navy); text-decoration: none;
   font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 22px;
 }
-.nav-brand img { width: 30px; height: 30px; display: block; }
+.nav-brand img { width: 36px; height: 36px; display: block; object-fit: contain; }
 .nav-menu { display: flex; align-items: center; gap: 4px; margin: 0 auto; }
 .nav-link {
   color: var(--navy); text-decoration: none; font-weight: 500; font-size: 15px;

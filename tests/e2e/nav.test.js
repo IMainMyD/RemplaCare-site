@@ -19,7 +19,8 @@ test('liens de la barre dans l\'ordre', async () => {
     ['Ordonnance', 'Simulateur de cotisation', 'Ressources', 'Nos Solutions']);
   const hrefs = await page.locator('.nav-link').evaluateAll((els) => els.map((e) => e.getAttribute('href')));
   assert.deepEqual(hrefs, ['/ordonnance', '/simulateur', '/ressources', '/nos-solutions']);
-  assert.equal(await page.locator('.nav-contact').getAttribute('href'), 'mailto:contact@remplacare.fr');
+  assert.equal(await page.locator('.nav-contact').getAttribute('href'), '/feedback');
+  assert.equal(await page.locator('.nav-contact-mobile').getAttribute('href'), '/feedback');
   assert.equal(await page.locator('.nav-download').evaluate((e) => e.hasAttribute('data-download')), true);
   await page.close();
 });
@@ -97,5 +98,15 @@ test('menu mobile : focus clavier sur le premier lien, Échap rend le focus au b
   await page.keyboard.press('Escape');
   assert.equal(await burger.getAttribute('aria-expanded'), 'false');
   assert.equal(await page.evaluate(() => document.activeElement.classList.contains('nav-burger')), true);
+  await page.close();
+});
+
+test('le logo RemplaCare s\'affiche dans la barre', async () => {
+  const page = await open(1280, 800);
+  const logo = page.locator('.nav-brand img');
+  assert.equal(await logo.getAttribute('src'), '/images/logo-ordonnance.png');
+  // l'image est réellement chargée (pas un lien cassé)
+  assert.ok(await logo.evaluate((img) => img.complete && img.naturalWidth > 0), 'logo non chargé');
+  assert.equal(await page.locator('.nav-brand span').textContent(), 'remplacare');
   await page.close();
 });

@@ -99,8 +99,9 @@
   // Seule pause : le focus clavier à l'intérieur d'une carte (pas les onglets, pas le survol).
   function inPanel(el) { return !!(el && el.closest && el.closest('.panel') && root.contains(el)); }
   root.addEventListener('focusin', function (e) {
+    // Clavier dans une carte : pause ; tout autre focus (souris, onglets, flèches) : jamais de pause.
     if (inPanel(e.target) && e.target.matches(':focus-visible')) { root.setAttribute('data-paused', ''); }
-    else if (!inPanel(e.target)) { root.removeAttribute('data-paused'); }
+    else { root.removeAttribute('data-paused'); }
   });
   root.addEventListener('focusout', function (e) {
     if (!inPanel(e.relatedTarget)) { root.removeAttribute('data-paused'); }

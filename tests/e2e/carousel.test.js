@@ -354,3 +354,23 @@ test('le focus clavier dans une carte met en pause, la sortie reprend', async ()
     () => document.querySelector('[role=tab][aria-selected="true"]').dataset.tool !== 'calendrier', null, { timeout: 5000 });
   await page.close();
 });
+
+test('un clic souris dans la carte lève la pause du focus clavier', async () => {
+  const page = await open({ times: '--t-switch:40ms', cycle: '300ms' });
+  await page.mouse.move(5, 5);
+  await page.addStyleTag({ content: ':root{--cycle:60s}' });
+  await page.focus('#tab-calendrier');
+  for (let i = 0; i < 6; i++) {
+    if (await page.evaluate(() => !!document.activeElement.closest('.panel'))) break;
+    await page.keyboard.press('Tab');
+  }
+  await page.keyboard.press('Tab');
+  assert.equal(await page.evaluate(() => document.activeElement.classList.contains('panel-more')), true);
+  assert.notEqual(await page.getAttribute('[data-carousel]', 'data-paused'), null);
+  const first = await selected(page);
+  await page.locator('#panel-' + first + ' h3').click();
+  assert.equal(await page.getAttribute('[data-carousel]', 'data-paused'), null);
+  await page.addStyleTag({ content: ':root{--cycle:300ms}' });
+  await page.waitForFunction((f) => document.querySelector('[role=tab][aria-selected="true"]').dataset.tool !== f, first, { timeout: 4000 });
+  await page.close();
+});
